@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Cogitator - Stable</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="theme-standard">
+
+    <div id="global-controls">
+        <div class="control-group">
+            <label for="theme-selector">Forge World Theme:</label>
+            <select id="theme-selector">
+                <option value="theme-standard">Mechanicus Standard</option>
+                <option value="theme-mars">Mars Red</option>
+                <option value="theme-ryza">Ryza Orange</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Calculation Mode:</label>
+            <div id="mode-selector">
+                <input type="radio" id="mode-operatives" name="calc-mode" value="operatives" checked>
+                <label for="mode-operatives">Calculate Operatives</label>
+                <input type="radio" id="mode-time" name="calc-mode" value="time">
+                <label for="mode-time">Estimate Time</label>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-chassis">
+        <h1>Quad-Core Allocation Cogitator</h1>
+
+        <div id="p1-cogitator" class="cogitator-instance">
+            <h2>(P1) Primary Manifold</h2>
+            <div class="input-row">
+                <div class="input-group"><label for="p1-total-units">Pickable:</label><input type="number" id="p1-total-units" class="auto-calc-input" data-prefix="p1" placeholder="Units"></div>
+                <div class="input-group"><label for="p1-non-pickable">Non-Pickable:</label><input type="number" id="p1-non-pickable" class="auto-calc-input" data-prefix="p1" placeholder="Units"></div>
+            </div>
+            <div class="input-group"><label id="p1-time-frame-label" for="p1-time-frame">Timeframe (Hours):</label><input type="number" id="p1-time-frame" class="auto-calc-input" data-prefix="p1" placeholder="Hours"></div>
+            <div class="input-row">
+                <div class="input-group"><label id="p1-picker-rate-label" for="p1-picker-rate">Picker Rate:</label><input type="number" id="p1-picker-rate" class="auto-calc-input" data-prefix="p1" placeholder="Units/Hour"></div>
+                <div class="input-group"><label id="p1-palletizer-rate-label" for="p1-palletizer-rate">Palletizer Rate:</label><input type="number" id="p1-palletizer-rate" class="auto-calc-input" data-prefix="p1" placeholder="Units/Hour"></div>
+            </div>
+            <div class="input-row">
+                <div class="input-group"><label id="p1-picker-cost-label" for="p1-picker-cost">Picker Cost/Hour:</label><input type="number" id="p1-picker-cost" class="auto-calc-input" data-prefix="p1" placeholder="$"></div>
+                <div class="input-group"><label id="p1-palletizer-cost-label" for="p1-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p1-palletizer-cost" class="auto-calc-input" data-prefix="p1" placeholder="$"></div>
+            </div>
+            <div class="sync-group"><input type="checkbox" id="sync-rates-checkbox"><label for="sync-rates-checkbox">Sync Rates & Costs to P2 & P3</label></div>
+            <div id="p1-output-log" class="output-log"></div>
+        </div>
+
+        <div id="p2-cogitator" class="cogitator-instance">
+            <h2>(P2) Secondary Manifold</h2>
+            <div class="input-row">
+                <div class="input-group"><label for="p2-total-units">Pickable:</label><input type="number" id="p2-total-units" class="auto-calc-input" data-prefix="p2" placeholder="Units"></div>
+                <div class="input-group"><label for="p2-non-pickable">Non-Pickable:</label><input type="number" id="p2-non-pickable" class="auto-calc-input" data-prefix="p2" placeholder="Units"></div>
+            </div>
+            <div class="input-group"><label id="p2-time-frame-label" for="p2-time-frame">Timeframe (Hours):</label><input type="number" id="p2-time-frame" class="auto-calc-input" data-prefix="p2" placeholder="Hours"></div>
+            <div class="input-row">
+                <div class="input-group"><label id="p2-picker-rate-label" for="p2-picker-rate">Picker Rate:</label><input type="number" id="p2-picker-rate" class="auto-calc-input" data-prefix="p2" placeholder="Units/Hour"></div>
+                <div class="input-group"><label id="p2-palletizer-rate-label" for="p2-palletizer-rate">Palletizer Rate:</label><input type="number" id="p2-palletizer-rate" class="auto-calc-input" data-prefix="p2" placeholder="Units/Hour"></div>
+            </div>
+            <div class="input-row">
+                <div class="input-group"><label id="p2-picker-cost-label" for="p2-picker-cost">Picker Cost/Hour:</label><input type="number" id="p2-picker-cost" class="auto-calc-input" data-prefix="p2" placeholder="$"></div>
+                <div class="input-group"><label id="p2-palletizer-cost-label" for="p2-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p2-palletizer-cost" class="auto-calc-input" data-prefix="p2" placeholder="$"></div>
+            </div>
+            <div id="p2-output-log" class="output-log"></div>
+        </div>
+
+        <div id="p3-cogitator" class="cogitator-instance">
+            <h2>(P3) Tertiary Manifold</h2>
+            <div class="input-row">
+                <div class="input-group"><label for="p3-total-units">Pickable:</label><input type="number" id="p3-total-units" class="auto-calc-input" data-prefix="p3" placeholder="Units"></div>
+                <div class="input-group"><label for="p3-non-pickable">Non-Pickable:</label><input type="number" id="p3-non-pickable" class="auto-calc-input" data-prefix="p3" placeholder="Units"></div>
+            </div>
+            <div class="input-group"><label id="p3-time-frame-label" for="p3-time-frame">Timeframe (Hours):</label><input type="number" id="p3-time-frame" class="auto-calc-input" data-prefix="p3" placeholder="Hours"></div>
+            <div class="input-row">
+                <div class="input-group"><label id="p3-picker-rate-label" for="p3-picker-rate">Picker Rate:</label><input type="number" id="p3-picker-rate" class="auto-calc-input" data-prefix="p3" placeholder="Units/Hour"></div>
+                <div class="input-group"><label id="p3-palletizer-rate-label" for="p3-palletizer-rate">Palletizer Rate:</label><input type="number" id="p3-palletizer-rate" class="auto-calc-input" data-prefix="p3" placeholder="Units/Hour"></div>
+            </div>
+            <div class="input-row">
+                <div class="input-group"><label id="p3-picker-cost-label" for="p3-picker-cost">Picker Cost/Hour:</label><input type="number" id="p3-picker-cost" class="auto-calc-input" data-prefix="p3" placeholder="$"></div>
+                <div class="input-group"><label id="p3-palletizer-cost-label" for="p3-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p3-palletizer-cost" class="auto-calc-input" data-prefix="p3" placeholder="$"></div>
+            </div>
+            <div id="p3-output-log" class="output-log"></div>
+        </div>
+        
+        <div id="p4-cogitator" class="cogitator-instance">
+            <h2>(P4) Aggregate Manifold</h2>
+            <div class="aggregate-display">
+                <h3>Summative Calculus:</h3>
+                <p>Total Pickable: <strong id="p4-total-pickable">0</strong></p>
+                <p>Total Non-Pickable: <strong id="p4-total-non-pickable">0</strong></p>
+                <p>Total Operational Cost: <strong id="p4-total-cost">$0</strong></p>
+                <hr>
+                <canvas id="p4-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
