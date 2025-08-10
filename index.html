@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni-Cogitator (Two-Tiered Array Edition)</title>
+    <title>Omni-Cogitator (Total Workload Fix)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -47,7 +47,6 @@
         button { cursor: pointer; font-weight: bold; }
         button:hover { background-color: var(--border-color); }
 
-        /* CORRECTED: Main chassis re-architected to a 3-column layout */
         #main-chassis { 
             width: 100%; 
             max-width: 1150px; 
@@ -57,18 +56,15 @@
         }
         .cogitator-instance { background-color: var(--panel-bg); border-radius: 8px; padding: 12px 15px; border: 1px solid var(--border-color); }
         
-        /* CORRECTED: Title and Aggregate Manifold now span the full 3 columns */
         #main-chassis h1, #p4-cogitator { 
             grid-column: 1 / -1; 
         }
 
-        /* CORRECTED: Responsive breakpoint adjusted for the 3-column layout */
         @media (max-width: 1150px) {
             #main-chassis { 
                 grid-template-columns: 1fr; 
                 max-width: 600px;
             }
-            /* On smaller screens, the span is removed so it stacks correctly */
             #main-chassis h1, #p4-cogitator {
                 grid-column: auto;
             }
@@ -91,6 +87,7 @@
         .aggregate-display p { margin: 6px 0; font-size: 1em; display: flex; justify-content: space-between; align-items: center;}
         ul { padding-left: 0; margin: 0; list-style: none; }
         li { margin-bottom: 3px; font-size: 0.9em; }
+        .detail { font-size: 0.8em; color: #888; padding-left: 10px; }
         hr { border-color: #444; margin: 6px 0; }
     </style>
 </head>
@@ -138,7 +135,6 @@
             <div class="input-row"><div class="input-group"><label for="p1-picker-rate">Picker Rate:</label><input type="number" id="p1-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p1-palletizer-rate">Palletizer Rate:</label><input type="number" id="p1-palletizer-rate" placeholder="U/Hr"></div></div>
             <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p1-available-pickers">Available Pickers:</label><input type="number" id="p1-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p1-available-palletizers">Available Palletizers:</label><input type="number" id="p1-available-palletizers" placeholder="Count"></div></div>
             <div class="input-row"><div class="input-group"><label for="p1-picker-delay">Picker Delay (min):</label><input type="number" id="p1-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p1-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p1-palletizer-delay" placeholder="Min"></div></div>
-            <div class="input-row"><div class="input-group"><label for="p1-picker-cost">Picker Cost/Hr:</label><input type="number" id="p1-picker-cost" placeholder="$"></div><div class="input-group"><label for="p1-palletizer-cost">Palletizer Cost/Hr:</label><input type="number" id="p1-palletizer-cost" placeholder="$"></div></div>
             <div class="control-group"><input type="checkbox" id="sync-rates-checkbox"><label for="sync-rates-checkbox">Sync P1 Rates to P2 & P3</label></div>
             <div id="p1-output-log" class="output-log"></div>
         </div>
@@ -151,7 +147,6 @@
             <div class="input-row"><div class="input-group"><label for="p2-picker-rate">Picker Rate:</label><input type="number" id="p2-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p2-palletizer-rate">Palletizer Rate:</label><input type="number" id="p2-palletizer-rate" placeholder="U/Hr"></div></div>
             <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p2-available-pickers">Available Pickers:</label><input type="number" id="p2-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p2-available-palletizers">Available Palletizers:</label><input type="number" id="p2-available-palletizers" placeholder="Count"></div></div>
             <div class="input-row"><div class="input-group"><label for="p2-picker-delay">Picker Delay (min):</label><input type="number" id="p2-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p2-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p2-palletizer-delay" placeholder="Min"></div></div>
-            <div class="input-row"><div class="input-group"><label for="p2-picker-cost">Picker Cost/Hr:</label><input type="number" id="p2-picker-cost" placeholder="$"></div><div class="input-group"><label for="p2-palletizer-cost">Palletizer Cost/Hr:</label><input type="number" id="p2-palletizer-cost" placeholder="$"></div></div>
             <div id="p2-output-log" class="output-log"></div>
         </div>
 
@@ -163,7 +158,6 @@
             <div class="input-row"><div class="input-group"><label for="p3-picker-rate">Picker Rate:</label><input type="number" id="p3-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p3-palletizer-rate">Palletizer Rate:</label><input type="number" id="p3-palletizer-rate" placeholder="U/Hr"></div></div>
             <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p3-available-pickers">Available Pickers:</label><input type="number" id="p3-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p3-available-palletizers">Available Palletizers:</label><input type="number" id="p3-available-palletizers" placeholder="Count"></div></div>
             <div class="input-row"><div class="input-group"><label for="p3-picker-delay">Picker Delay (min):</label><input type="number" id="p3-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p3-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p3-palletizer-delay" placeholder="Min"></div></div>
-            <div class="input-row"><div class="input-group"><label for="p3-picker-cost">Picker Cost/Hr:</label><input type="number" id="p3-picker-cost" placeholder="$"></div><div class="input-group"><label for="p3-palletizer-cost">Palletizer Cost/Hr:</label><input type="number" id="p3-palletizer-cost" placeholder="$"></div></div>
             <div id="p3-output-log" class="output-log"></div>
         </div>
         
@@ -173,7 +167,6 @@
                 <h3>Summative Calculus:</h3>
                 <p>Total Pickable: <strong id="p4-total-pickable">0</strong></p>
                 <p>Total Non-Pickable: <strong id="p4-total-non-pickable">0</strong></p>
-                <p>Total Operational Cost: <strong id="p4-total-cost">$0</strong></p>
                 <hr>
                 <div class="control-group chart-controls">
                     <label for="chart-type-select">Chart Type:</label>
@@ -193,8 +186,8 @@
             document.querySelectorAll('[id]').forEach(el => DOM[el.id] = el);
 
             const prefixes = ['p1', 'p2', 'p3'];
-            const allInputFields = ['pickable', 'non-pickable', 'wip', 'timeframe', 'picker-rate', 'palletizer-rate', 'available-pickers', 'available-palletizers', 'picker-cost', 'palletizer-cost', 'picker-delay', 'palletizer-delay'];
-            const syncFields = ['picker-rate', 'palletizer-rate', 'picker-cost', 'palletizer-cost', 'picker-delay', 'palletizer-delay'];
+            const allInputFields = ['pickable', 'non-pickable', 'wip', 'timeframe', 'picker-rate', 'palletizer-rate', 'available-pickers', 'available-palletizers', 'picker-delay', 'palletizer-delay'];
+            const syncFields = ['picker-rate', 'palletizer-rate', 'picker-delay', 'palletizer-delay'];
             let chart;
             let scenarios = {};
 
@@ -203,7 +196,8 @@
                 if (DOM['sync-rates-checkbox'].checked) syncInputs();
                 updateUIStates(mode);
 
-                const totals = { pickable: 0, nonPickable: 0, cost: 0, pickers: 0, palletizers: 0, activeManifolds: 0 };
+                // CORRECTED: Added totalPickers and totalPalletizers to totals object
+                const totals = { pickable: 0, nonPickable: 0, pickers: 0, palletizers: 0, totalPickers: 0, totalPalletizers: 0, activeManifolds: 0 };
 
                 prefixes.forEach(prefix => {
                     const values = getValues(prefix);
@@ -214,7 +208,9 @@
                         totals.activeManifolds++;
                         totals.pickers += results.pickers || 0;
                         totals.palletizers += results.palletizers || 0;
-                        totals.cost += results.cost || 0;
+                        // CORRECTED: Add total operatives to totals
+                        totals.totalPickers += results.totalPickers || 0;
+                        totals.totalPalletizers += results.totalPalletizers || 0;
                     }
                     totals.pickable += values.pickable;
                     totals.nonPickable += values['non-pickable'];
@@ -232,22 +228,31 @@
             }
 
             function calculateOperatives(v) {
-                v.wip = Math.min(v.pickable, v.wip);
                 const effectivePickerTime = (v.timeframe * 60 - v['picker-delay']) / 60;
                 const effectivePalletizerTime = (v.timeframe * 60 - v['palletizer-delay']) / 60;
                 const isValid = v.pickable > 0 && effectivePickerTime > 0 && effectivePalletizerTime > 0 && v['picker-rate'] > 0 && v['palletizer-rate'] > 0;
                 if (!isValid) return { isValid: false, html: `<p style="color: var(--danger-color);">Awaiting valid parameters...</p>` };
                 
-                const pickerWorkload = v.pickable - v.wip;
+                const pickerWorkload = v.pickable;
+                const palletizerWorkload = v.pickable + v.wip;
                 const p = Math.ceil(pickerWorkload / (v['picker-rate'] * effectivePickerTime));
-                const pl = Math.ceil(v.pickable / (v['palletizer-rate'] * effectivePalletizerTime));
-                const cost = (p * v['picker-cost'] * effectivePickerTime) + (pl * v['palletizer-cost'] * effectivePalletizerTime);
+                const pl = Math.ceil(palletizerWorkload / (v['palletizer-rate'] * effectivePalletizerTime));
+
+                // CORRECTED: Calculate total workload including non-pickable units
+                const totalWorkload = v.pickable + v['non-pickable'];
+                const totalPalletizerWorkload = totalWorkload + v.wip;
+                const tp = Math.ceil(totalWorkload / (v['picker-rate'] * effectivePickerTime));
+                const tpl = Math.ceil(totalPalletizerWorkload / (v['palletizer-rate'] * effectivePalletizerTime));
+                
                 return {
-                    isValid: true, pickers: p, palletizers: pl, cost,
+                    isValid: true, pickers: p, palletizers: pl, totalPickers: tp, totalPalletizers: tpl,
+                    // CORRECTED: Updated HTML to show both calculations
                     html: `<h3>Calculus Complete:</h3><ul>
-                        <li>Pickers Required: <strong>${p}</strong></li>
-                        <li>Palletizers Required: <strong>${pl}</strong></li>
-                        <hr><li>Operational Cost: <strong>$${cost.toLocaleString(undefined, {minimumFractionDigits: 2})}</strong></li></ul>`
+                        <li>Pickers (Pickable): <strong>${p}</strong></li>
+                        <li>Palletizers (Pickable): <strong>${pl}</strong></li>
+                        <hr>
+                        <li>Pickers (Total): <strong>${tp}</strong></li>
+                        <li>Palletizers (Total): <strong>${tpl}</strong></li></ul>`
                 };
             }
 
@@ -255,13 +260,23 @@
                 const isValid = v.pickable > 0 && v['picker-rate'] > 0 && v['palletizer-rate'] > 0 && v['available-pickers'] > 0 && v['available-palletizers'] > 0;
                 if (!isValid) return { isValid: false, html: `<p style="color: var(--danger-color);">Awaiting valid parameters...</p>` };
                 
-                const time = Math.max((v.pickable - v.wip) / (v['available-pickers'] * v['picker-rate']), v.pickable / (v['available-palletizers'] * v['palletizer-rate']));
-                const cost = (v['available-pickers'] * v['picker-cost'] + v['available-palletizers'] * v['palletizer-cost']) * time;
+                const pickerTime = v.pickable / (v['available-pickers'] * v['picker-rate']);
+                const palletizerTime = (v.pickable + v.wip) / (v['available-palletizers'] * v['palletizer-rate']);
+                const time = Math.max(pickerTime, palletizerTime);
+
+                // CORRECTED: Calculate total time including non-pickable units
+                const totalWorkload = v.pickable + v['non-pickable'];
+                const totalPalletizerWorkload = totalWorkload + v.wip;
+                const totalPickerTime = totalWorkload / (v['available-pickers'] * v['picker-rate']);
+                const totalPalletizerTime = totalPalletizerWorkload / (v['available-palletizers'] * v['palletizer-rate']);
+                const totalTime = Math.max(totalPickerTime, totalPalletizerTime);
+
                 return {
-                    isValid: true, time, cost,
+                    isValid: true, time, totalTime,
+                    // CORRECTED: Updated HTML to show both time calculations
                     html: `<h3>Calculus Complete:</h3><ul>
-                        <li>Time Required: <strong>${time.toFixed(2)} Hrs</strong></li>
-                        <hr><li>Operational Cost: <strong>$${cost.toLocaleString(undefined, {minimumFractionDigits: 2})}</strong></li></ul>`
+                        <li>Time (Pickable): <strong>${time.toFixed(2)} Hrs</strong></li>
+                        <li>Time (Total): <strong>${totalTime.toFixed(2)} Hrs</strong></li></ul>`
                 };
             }
 
@@ -269,8 +284,8 @@
                 const div = totals.activeManifolds || 1;
                 DOM['p4-total-pickable'].textContent = totals.pickable.toLocaleString();
                 DOM['p4-total-non-pickable'].textContent = totals.nonPickable.toLocaleString();
-                DOM['p4-total-cost'].textContent = `$${totals.cost.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-                updateChart([totals.pickers / div, totals.palletizers / div]);
+                // CORRECTED: Pass all four operative averages to the chart
+                updateChart([totals.pickers / div, totals.palletizers / div, totals.totalPickers / div, totals.totalPalletizers / div]);
             }
             
             function updateUIStates(mode) {
@@ -294,7 +309,14 @@
                 Chart.defaults.color = '#d1d1d1';
                 chart = new Chart(ctx, {
                     type: 'bar',
-                    data: { labels: ['Avg Pickers', 'Avg Palletizers'], datasets: [{ data: [0, 0], backgroundColor: ['#c3a4f0', '#a178d1'] }] },
+                    // CORRECTED: Updated chart labels and colors for four data points
+                    data: { 
+                        labels: ['Avg Pickers (Pickable)', 'Avg Palletizers (Pickable)', 'Avg Pickers (Total)', 'Avg Palletizers (Total)'], 
+                        datasets: [{ 
+                            data: [0, 0, 0, 0], 
+                            backgroundColor: ['#a178d1', '#6a4b8a', '#F4A261', '#D94f30'] 
+                        }] 
+                    },
                     options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } }, plugins: { legend: { display: false } } }
                 });
             }
@@ -393,4 +415,3 @@
     </script>
 </body>
 </html>
-
