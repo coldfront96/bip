@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni-Cogitator (Modal Interface Edition)</title>
+    <title>Omni-Cogitator (Quad-Matrix Edition)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -47,17 +47,31 @@
         button { cursor: pointer; font-weight: bold; }
         button:hover { background-color: var(--border-color); }
 
-        #main-chassis { width: 100%; max-width: 1150px; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
+        /* CORRECTED: Main chassis re-architected to a 2x2 grid */
+        #main-chassis { 
+            width: 100%; 
+            max-width: 1200px; /* Adjusted for a 2-column layout */
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: var(--gap); 
+        }
         .cogitator-instance { background-color: var(--panel-bg); border-radius: 8px; padding: 12px 15px; border: 1px solid var(--border-color); }
-        #p4-cogitator { grid-column: 1 / -1; }
+        
+        /* CORRECTED: The title now spans the new 2-column layout */
+        #main-chassis h1 { 
+            grid-column: 1 / -1; 
+        }
 
-        @media (max-width: 1150px) {
-            #main-chassis { grid-template-columns: 1fr; max-width: 600px; }
-            #p4-cogitator { grid-column: auto; }
+        /* CORRECTED: Responsive breakpoint adjusted for the new 2-column layout */
+        @media (max-width: 900px) {
+            #main-chassis { 
+                grid-template-columns: 1fr; 
+                max-width: 500px;
+            }
         }
 
         h1, h2 { text-align: center; margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #444; }
-        h1 { color: var(--primary-color); grid-column: 1 / -1; font-size: 1.4em; }
+        h1 { color: var(--primary-color); font-size: 1.4em; }
         h2 { color: var(--secondary-color); font-size: 1.1em; margin-bottom: 12px; }
 
         .input-group { width: 100%;}
@@ -199,7 +213,7 @@
                         totals.cost += results.cost || 0;
                     }
                     totals.pickable += values.pickable;
-                    totals.nonPickable += values.nonPickable;
+                    totals.nonPickable += values['non-pickable'];
                 });
                 
                 renderAggregate(totals);
@@ -215,15 +229,15 @@
 
             function calculateOperatives(v) {
                 v.wip = Math.min(v.pickable, v.wip);
-                const effectivePickerTime = (v.timeframe * 60 - v.pickerDelay) / 60;
-                const effectivePalletizerTime = (v.timeframe * 60 - v.palletizerDelay) / 60;
-                const isValid = v.pickable > 0 && effectivePickerTime > 0 && effectivePalletizerTime > 0 && v.pickerRate > 0 && v.palletizerRate > 0;
-                if (!isValid) return { isValid: false, html: `<p>Awaiting valid parameters...</p>` };
+                const effectivePickerTime = (v.timeframe * 60 - v['picker-delay']) / 60;
+                const effectivePalletizerTime = (v.timeframe * 60 - v['palletizer-delay']) / 60;
+                const isValid = v.pickable > 0 && effectivePickerTime > 0 && effectivePalletizerTime > 0 && v['picker-rate'] > 0 && v['palletizer-rate'] > 0;
+                if (!isValid) return { isValid: false, html: `<p style="color: var(--danger-color);">Awaiting valid parameters...</p>` };
                 
                 const pickerWorkload = v.pickable - v.wip;
-                const p = Math.ceil(pickerWorkload / (v.pickerRate * effectivePickerTime));
-                const pl = Math.ceil(v.pickable / (v.palletizerRate * effectivePalletizerTime));
-                const cost = (p * v.pickerCost * effectivePickerTime) + (pl * v.palletizerCost * effectivePalletizerTime);
+                const p = Math.ceil(pickerWorkload / (v['picker-rate'] * effectivePickerTime));
+                const pl = Math.ceil(v.pickable / (v['palletizer-rate'] * effectivePalletizerTime));
+                const cost = (p * v['picker-cost'] * effectivePickerTime) + (pl * v['palletizer-cost'] * effectivePalletizerTime);
                 return {
                     isValid: true, pickers: p, palletizers: pl, cost,
                     html: `<h3>Calculus Complete:</h3><ul>
@@ -234,11 +248,11 @@
             }
 
             function estimateTime(v) {
-                const isValid = v.pickable > 0 && v.pickerRate > 0 && v.palletizerRate > 0 && v.availablePickers > 0 && v.availablePalletizers > 0;
-                if (!isValid) return { isValid: false, html: `<p>Awaiting valid parameters...</p>` };
+                const isValid = v.pickable > 0 && v['picker-rate'] > 0 && v['palletizer-rate'] > 0 && v['available-pickers'] > 0 && v['available-palletizers'] > 0;
+                if (!isValid) return { isValid: false, html: `<p style="color: var(--danger-color);">Awaiting valid parameters...</p>` };
                 
-                const time = Math.max((v.pickable - v.wip) / (v.availablePickers * v.pickerRate), v.pickable / (v.availablePalletizers * v.palletizerRate));
-                const cost = (v.availablePickers * v.pickerCost + v.availablePalletizers * v.palletizerCost) * time;
+                const time = Math.max((v.pickable - v.wip) / (v['available-pickers'] * v['picker-rate']), v.pickable / (v['available-palletizers'] * v['palletizer-rate']));
+                const cost = (v['available-pickers'] * v['picker-cost'] + v['available-palletizers'] * v['palletizer-cost']) * time;
                 return {
                     isValid: true, time, cost,
                     html: `<h3>Calculus Complete:</h3><ul>
