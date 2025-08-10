@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni-Cogitator (Quad-Matrix Edition)</title>
+    <title>Omni-Cogitator (Two-Tiered Array Edition)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -47,26 +47,30 @@
         button { cursor: pointer; font-weight: bold; }
         button:hover { background-color: var(--border-color); }
 
-        /* CORRECTED: Main chassis re-architected to a 2x2 grid */
+        /* CORRECTED: Main chassis re-architected to a 3-column layout */
         #main-chassis { 
             width: 100%; 
-            max-width: 1200px; /* Adjusted for a 2-column layout */
+            max-width: 1150px; 
             display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
+            grid-template-columns: repeat(3, 1fr); 
             gap: var(--gap); 
         }
         .cogitator-instance { background-color: var(--panel-bg); border-radius: 8px; padding: 12px 15px; border: 1px solid var(--border-color); }
         
-        /* CORRECTED: The title now spans the new 2-column layout */
-        #main-chassis h1 { 
+        /* CORRECTED: Title and Aggregate Manifold now span the full 3 columns */
+        #main-chassis h1, #p4-cogitator { 
             grid-column: 1 / -1; 
         }
 
-        /* CORRECTED: Responsive breakpoint adjusted for the new 2-column layout */
-        @media (max-width: 900px) {
+        /* CORRECTED: Responsive breakpoint adjusted for the 3-column layout */
+        @media (max-width: 1150px) {
             #main-chassis { 
                 grid-template-columns: 1fr; 
-                max-width: 500px;
+                max-width: 600px;
+            }
+            /* On smaller screens, the span is removed so it stacks correctly */
+            #main-chassis h1, #p4-cogitator {
+                grid-column: auto;
             }
         }
 
@@ -389,3 +393,4 @@
     </script>
 </body>
 </html>
+
