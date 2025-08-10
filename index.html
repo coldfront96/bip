@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni-Cogitator (Height-Constrained)</title>
+    <title>Omni-Cogitator (Custom Theme)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -46,6 +46,7 @@
         input[type="text"], select, button { background-color: var(--input-bg); color: var(--text-color); border: 1px solid #444; padding: 4px; border-radius: 4px; font-family: inherit; }
         button { cursor: pointer; font-weight: bold; }
         button:hover { background-color: var(--border-color); }
+        input[type="color"] { width: 40px; height: 25px; padding: 2px; border: 1px solid #444; background-color: var(--input-bg); cursor: pointer; }
 
         #main-chassis { 
             width: 100%; 
@@ -90,7 +91,6 @@
         .detail { font-size: 0.8em; color: #888; padding-left: 10px; }
         hr { border-color: #444; margin: 6px 0; }
 
-        /* CORRECTED: New container to constrain the chart's height */
         .chart-container {
             position: relative;
             max-height: 250px; 
@@ -109,6 +109,7 @@
                     <option value="theme-standard">Standard</option>
                     <option value="theme-mars">Mars</option>
                     <option value="theme-ryza">Ryza</option>
+                    <option value="theme-custom">Custom</option>
                 </select>
                 <label>Mode:</label>
                 <div id="mode-selector">
@@ -125,6 +126,15 @@
                 <select id="load-scenario-select"><option value="">Load...</option></select>
                 <button id="load-scenario-btn">Load</button>
                 <button id="delete-scenario-btn">Del</button>
+            </div>
+            <!-- CORRECTED: New controls for custom theme -->
+            <div id="custom-theme-controls" class="control-group hidden">
+                <label>Primary:</label>
+                <input type="color" id="custom-primary-color" value="#a178d1">
+                <label>Secondary:</label>
+                <input type="color" id="custom-secondary-color" value="#c3a4f0">
+                <label>Border:</label>
+                <input type="color" id="custom-border-color" value="#6a4b8a">
             </div>
         </div>
     </div>
@@ -181,7 +191,6 @@
                         <option value="doughnut">Doughnut</option>
                     </select>
                 </div>
-                <!-- CORRECTED: Canvas is now wrapped in a container -->
                 <div class="chart-container">
                     <canvas id="p4-chart"></canvas>
                 </div>
@@ -320,7 +329,6 @@
                             backgroundColor: ['#a178d1', '#6a4b8a', '#F4A261', '#D94f30'] 
                         }] 
                     },
-                    // CORRECTED: Added maintainAspectRatio: false to respect the container's height
                     options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } }, plugins: { legend: { display: false } } }
                 });
             }
@@ -373,6 +381,13 @@
                     select.appendChild(option);
                 }
             }
+
+            // CORRECTED: New function to apply custom colors
+            function applyCustomTheme(colors) {
+                document.documentElement.style.setProperty('--primary-color', colors.primary);
+                document.documentElement.style.setProperty('--secondary-color', colors.secondary);
+                document.documentElement.style.setProperty('--border-color', colors.border);
+            }
             
             // --- INITIALIZATION RITE ---
             DOM['options-trigger-btn'].addEventListener('click', () => DOM['modal-overlay'].style.display = 'flex');
@@ -384,7 +399,23 @@
             document.querySelectorAll('input, select').forEach(el => {
                 const eventType = (el.tagName === 'SELECT' || el.type === 'radio' || el.type === 'checkbox') ? 'change' : 'input';
                 el.addEventListener(eventType, () => {
-                    if (el.id === 'theme-selector') document.body.className = el.value;
+                    if (el.id === 'theme-selector') {
+                        const customControls = DOM['custom-theme-controls'];
+                        if (el.value === 'theme-custom') {
+                            document.body.className = ''; // Remove standard theme classes
+                            customControls.classList.remove('hidden');
+                            // Apply current picker colors
+                            const currentColors = {
+                                primary: DOM['custom-primary-color'].value,
+                                secondary: DOM['custom-secondary-color'].value,
+                                border: DOM['custom-border-color'].value
+                            };
+                            applyCustomTheme(currentColors);
+                        } else {
+                            document.body.className = el.value;
+                            customControls.classList.add('hidden');
+                        }
+                    }
                     masterUpdate();
                     try {
                         if (el.type === 'checkbox' || el.type === 'radio') localStorage.setItem(el.id, el.checked);
@@ -401,6 +432,15 @@
                 } catch (e) {}
             });
 
+            // CORRECTED: Add event listeners for color pickers
+            ['custom-primary-color', 'custom-secondary-color', 'custom-border-color'].forEach(id => {
+                DOM[id].addEventListener('input', (e) => {
+                    const colorVar = `--${id.replace('custom-', '')}`; // e.g., --primary-color
+                    document.documentElement.style.setProperty(colorVar, e.target.value);
+                    localStorage.setItem(id, e.target.value);
+                });
+            });
+
             ['save-scenario-btn', 'load-scenario-btn', 'delete-scenario-btn'].forEach(id => {
                 const actions = { 'save-scenario-btn': saveScenario, 'load-scenario-btn': loadScenario, 'delete-scenario-btn': deleteScenario };
                 if(DOM[id]) DOM[id].addEventListener('click', actions[id]);
@@ -410,7 +450,26 @@
                 const savedScenarios = localStorage.getItem('cogitatorScenarios');
                 if (savedScenarios) scenarios = JSON.parse(savedScenarios);
                 populateScenarioDropdown();
-                document.body.className = localStorage.getItem('theme-selector') || 'theme-standard';
+                
+                const savedTheme = localStorage.getItem('theme-selector') || 'theme-standard';
+                DOM['theme-selector'].value = savedTheme;
+
+                if (savedTheme === 'theme-custom') {
+                    document.body.className = '';
+                    DOM['custom-theme-controls'].classList.remove('hidden');
+                    const colors = {
+                        primary: localStorage.getItem('custom-primary-color') || '#a178d1',
+                        secondary: localStorage.getItem('custom-secondary-color') || '#c3a4f0',
+                        border: localStorage.getItem('custom-border-color') || '#6a4b8a'
+                    };
+                    DOM['custom-primary-color'].value = colors.primary;
+                    DOM['custom-secondary-color'].value = colors.secondary;
+                    DOM['custom-border-color'].value = colors.border;
+                    applyCustomTheme(colors);
+                } else {
+                    document.body.className = savedTheme;
+                }
+
             } catch (e) { console.warn("Could not read from memory engrams."); }
             
             initializeChart();
