@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni-Cogitator (Custom Theme)</title>
+    <title>Omni-Cogitator (Final Logo)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -95,6 +95,14 @@
             position: relative;
             max-height: 250px; 
         }
+
+        #branding-logo {
+            display: block;
+            width: 120px;
+            height: auto;
+            margin: 0 auto 15px auto;
+            fill: var(--secondary-color);
+        }
     </style>
 </head>
 <body>
@@ -127,7 +135,6 @@
                 <button id="load-scenario-btn">Load</button>
                 <button id="delete-scenario-btn">Del</button>
             </div>
-            <!-- CORRECTED: New controls for custom theme -->
             <div id="custom-theme-controls" class="control-group hidden">
                 <label>Primary:</label>
                 <input type="color" id="custom-primary-color" value="#a178d1">
@@ -142,6 +149,12 @@
 
     <div id="main-chassis">
         <h1>Omni-Purpose Allocation Cogitator</h1>
+        
+        <!-- CORRECTED: New SVG logo element -->
+        <svg id="branding-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 49.24 10.35">
+            <path d="M46.45,21.33a8.87,8.87,0,0,0-5,1.45c-.41.31-.41.73.1.73,1.65-.21,5.35-.73,6.07.2s-.72,4.36-1.34,6c-.2.52.21.62.62.31,2.78-2.39,3.5-7.26,3-7.88C49.54,21.64,48.09,21.33,46.45,21.33Z" transform="translate(-0.76 -21.33)"/>
+            <path d="M1.06,22.46a.36.36,0,0,0-.22.13.38.38,0,0,0,.06.52,39,39,0,0,0,10.16,5.82,39.36,39.36,0,0,0,11.53,2.66,37.64,37.64,0,0,0,11.83-1.08,32.72,32.72,0,0,0,10.79-4.85.74.74,0,0,0-.74-1.28l0,0a49.44,49.44,0,0,1-10.63,3.37,46,46,0,0,1-11,.92,47.45,47.45,0,0,1-11-1.91A57.57,57.57,0,0,1,1.33,22.51l0,0A.37.37,0,0,0,1.06,22.46Z" transform="translate(-0.76 -21.33)"/>
+        </svg>
 
         <div id="p1-cogitator" class="cogitator-instance">
             <h2>(P1) Primary Manifold</h2>
@@ -382,7 +395,6 @@
                 }
             }
 
-            // CORRECTED: New function to apply custom colors
             function applyCustomTheme(colors) {
                 document.documentElement.style.setProperty('--primary-color', colors.primary);
                 document.documentElement.style.setProperty('--secondary-color', colors.secondary);
@@ -402,9 +414,8 @@
                     if (el.id === 'theme-selector') {
                         const customControls = DOM['custom-theme-controls'];
                         if (el.value === 'theme-custom') {
-                            document.body.className = ''; // Remove standard theme classes
+                            document.body.className = '';
                             customControls.classList.remove('hidden');
-                            // Apply current picker colors
                             const currentColors = {
                                 primary: DOM['custom-primary-color'].value,
                                 secondary: DOM['custom-secondary-color'].value,
@@ -416,7 +427,7 @@
                             customControls.classList.add('hidden');
                         }
                     }
-                    masterUpdate();
+                    masterUpdate(); 
                     try {
                         if (el.type === 'checkbox' || el.type === 'radio') localStorage.setItem(el.id, el.checked);
                         else localStorage.setItem(el.id, el.value);
@@ -432,10 +443,9 @@
                 } catch (e) {}
             });
 
-            // CORRECTED: Add event listeners for color pickers
             ['custom-primary-color', 'custom-secondary-color', 'custom-border-color'].forEach(id => {
                 DOM[id].addEventListener('input', (e) => {
-                    const colorVar = `--${id.replace('custom-', '')}`; // e.g., --primary-color
+                    const colorVar = `--${id.replace('custom-', '')}`;
                     document.documentElement.style.setProperty(colorVar, e.target.value);
                     localStorage.setItem(id, e.target.value);
                 });
@@ -478,3 +488,4 @@
     </script>
 </body>
 </html>
+
