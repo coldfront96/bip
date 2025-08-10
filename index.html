@@ -3,47 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni-Cogitator (Compact Edition)</title>
+    <title>Omni-Cogitator (Modal Interface Edition)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-color: #1a1a1a; --text-color: #d1d1d1; --primary-color: #a178d1;
             --secondary-color: #c3a4f0; --border-color: #6a4b8a; --panel-bg: #2a2a2a;
-            --input-bg: #111; --gap: 15px; /* Reduced from 20px */ --danger-color: #ff4d4d;
+            --input-bg: #111; --gap: 15px; --danger-color: #ff4d4d;
         }
         body.theme-mars { --primary-color: #D94f30; --secondary-color: #F4A261; --border-color: #A93B24; }
         body.theme-ryza { --primary-color: #F9A03F; --secondary-color: #FFC15E; --border-color: #D4802A; }
 
-        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Lucida Console', Consolas, monospace; display: flex; flex-direction: column; align-items: center; padding: var(--gap); min-height: 100vh; font-size: 0.9em; /* Reduced base font size */ }
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Lucida Console', Consolas, monospace; display: flex; flex-direction: column; align-items: center; padding: var(--gap); min-height: 100vh; font-size: 0.9em; }
         
-        #global-controls, #scenario-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; width: 100%; max-width: 1150px; /* Reduced from 1300px */ margin-bottom: var(--gap); background-color: var(--panel-bg); padding: 10px 15px; /* Reduced padding */ border-radius: 8px; border: 1px solid var(--border-color); gap: 15px; }
-        .control-group { display: flex; align-items: center; gap: 8px; }
+        #options-trigger-btn {
+            position: fixed; top: 15px; right: 15px; z-index: 1001;
+            background-color: var(--panel-bg); border: 1px solid var(--border-color);
+            color: var(--text-color); font-size: 1.5em; width: 40px; height: 40px;
+            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        #options-trigger-btn:hover { background-color: var(--border-color); }
+
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7); z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+        }
+        #modal-panel {
+            background-color: var(--panel-bg); border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 20px; width: 90%; max-width: 800px;
+            display: flex; flex-direction: column; gap: 20px; position: relative;
+        }
+        #modal-close-btn {
+            position: absolute; top: 10px; right: 15px;
+            background: none; border: none; color: var(--text-color);
+            font-size: 2em; cursor: pointer;
+        }
+
+        .control-group { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 15px; }
         label { font-weight: bold; white-space: nowrap; }
-        #mode-selector label, .sync-group label, #global-controls .control-group label { margin: 0; }
-        input[type="text"], select, button { background-color: var(--input-bg); color: var(--text-color); border: 1px solid #444; padding: 4px; /* Reduced padding */ border-radius: 4px; font-family: inherit; }
+        #mode-selector label, .sync-group label, .control-group label { margin: 0; }
+        input[type="text"], select, button { background-color: var(--input-bg); color: var(--text-color); border: 1px solid #444; padding: 4px; border-radius: 4px; font-family: inherit; }
         button { cursor: pointer; font-weight: bold; }
         button:hover { background-color: var(--border-color); }
 
-        #main-chassis { width: 100%; max-width: 1150px; /* Reduced from 1300px */ display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
-        .cogitator-instance { background-color: var(--panel-bg); border-radius: 8px; padding: 12px 15px; /* Reduced padding */ border: 1px solid var(--border-color); }
+        #main-chassis { width: 100%; max-width: 1150px; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
+        .cogitator-instance { background-color: var(--panel-bg); border-radius: 8px; padding: 12px 15px; border: 1px solid var(--border-color); }
         #p4-cogitator { grid-column: 1 / -1; }
 
-        @media (max-width: 1150px) { /* Breakpoint matches new max-width */
-            #main-chassis {
-                grid-template-columns: 1fr;
-                max-width: 600px; /* Reduced max-width for single column */
-            }
-            #p4-cogitator {
-                grid-column: auto;
-            }
-            #global-controls, #scenario-controls {
-                flex-direction: column;
-                gap: 15px;
-                align-items: stretch;
-            }
+        @media (max-width: 1150px) {
+            #main-chassis { grid-template-columns: 1fr; max-width: 600px; }
+            #p4-cogitator { grid-column: auto; }
         }
 
-        h1, h2 { text-align: center; margin-top: 0; padding-bottom: 8px; /* Reduced padding */ border-bottom: 1px solid #444; }
+        h1, h2 { text-align: center; margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid #444; }
         h1 { color: var(--primary-color); grid-column: 1 / -1; font-size: 1.4em; }
         h2 { color: var(--secondary-color); font-size: 1.1em; margin-bottom: 12px; }
 
@@ -51,88 +64,64 @@
         .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
         .input-row .input-group { flex: 1; margin-bottom: 0; }
         label { display: block; margin-bottom: 3px; font-size: 0.9em; }
-        input[type="number"] { width: 100%; padding: 6px; /* Reduced padding */ background-color: var(--input-bg); border: 1px solid #444; border-radius: 4px; color: var(--text-color); font-size: 0.95em; box-sizing: border-box; transition: outline 0.2s; }
+        input[type="number"] { width: 100%; padding: 6px; background-color: var(--input-bg); border: 1px solid #444; border-radius: 4px; color: var(--text-color); font-size: 0.95em; box-sizing: border-box; }
         input:disabled { background-color: #333; cursor: not-allowed; opacity: 0.7; }
-        input.invalid-input { outline: 2px solid var(--danger-color) !important; }
         .hidden { display: none !important; }
 
         .output-log, .aggregate-display { margin-top: 12px; padding: 8px; background-color: var(--input-bg); border: 1px dashed #444; border-radius: 4px; }
-        .output-log h3, .aggregate-display h3 { color: var(--secondary-color); margin: 0 0 6px 0; font-size: 1em; }
         strong { color: #ffffff; font-size: 1.1em; }
         .aggregate-display p { margin: 6px 0; font-size: 1em; display: flex; justify-content: space-between; align-items: center;}
         ul { padding-left: 0; margin: 0; list-style: none; }
         li { margin-bottom: 3px; font-size: 0.9em; }
-        .detail { font-size: 0.8em; color: #888; padding-left: 8px; }
         hr { border-color: #444; margin: 6px 0; }
-        .sync-group { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
     </style>
 </head>
 <body>
+    <button id="options-trigger-btn" title="Display & Scenario Options">⚙</button>
 
-    <div id="global-controls">
-        <div class="control-group">
-            <label for="theme-selector">Forge World Theme:</label>
-            <select id="theme-selector">
-                <option value="theme-standard">Mechanicus Standard</option>
-                <option value="theme-mars">Mars Red</option>
-                <option value="theme-ryza">Ryza Orange</option>
-            </select>
-        </div>
-        <div class="control-group">
-            <label>Calculation Mode:</label>
-            <div id="mode-selector">
-                <input type="radio" id="mode-operatives" name="calc-mode" value="operatives" checked>
-                <label for="mode-operatives">Calculate Operatives</label>
-                <input type="radio" id="mode-time" name="calc-mode" value="time">
-                <label for="mode-time">Estimate Time</label>
+    <div id="modal-overlay">
+        <div id="modal-panel">
+            <button id="modal-close-btn" title="Close">&times;</button>
+            <div id="global-controls" class="control-group">
+                <label for="theme-selector">Theme:</label>
+                <select id="theme-selector">
+                    <option value="theme-standard">Standard</option>
+                    <option value="theme-mars">Mars</option>
+                    <option value="theme-ryza">Ryza</option>
+                </select>
+                <label>Mode:</label>
+                <div id="mode-selector">
+                    <input type="radio" id="mode-operatives" name="calc-mode" value="operatives" checked>
+                    <label for="mode-operatives">Ops</label>
+                    <input type="radio" id="mode-time" name="calc-mode" value="time">
+                    <label for="mode-time">Time</label>
+                </div>
+            </div>
+            <div id="scenario-controls" class="control-group">
+                <label for="scenario-name">Scenario:</label>
+                <input type="text" id="scenario-name" placeholder="Enter Name">
+                <button id="save-scenario-btn">Save</button>
+                <select id="load-scenario-select"><option value="">Load...</option></select>
+                <button id="load-scenario-btn">Load</button>
+                <button id="delete-scenario-btn">Del</button>
             </div>
         </div>
     </div>
 
-    <div id="scenario-controls">
-        <div class="control-group">
-            <label for="scenario-name">Scenario Name:</label>
-            <input type="text" id="scenario-name" placeholder="e.g., High-Volume Shift">
-            <button id="save-scenario-btn">Save</button>
-        </div>
-        <div class="control-group">
-            <label for="load-scenario-select">Load Scenario:</label>
-            <select id="load-scenario-select">
-                <option value="">Select a preset...</option>
-            </select>
-            <button id="load-scenario-btn">Load</button>
-            <button id="delete-scenario-btn">Delete</button>
-        </div>
-    </div>
 
     <div id="main-chassis">
         <h1>Omni-Purpose Allocation Cogitator</h1>
 
         <div id="p1-cogitator" class="cogitator-instance">
             <h2>(P1) Primary Manifold</h2>
-            <div class="input-row">
-                <div class="input-group"><label for="p1-pickable">Pickable:</label><input type="number" id="p1-pickable" placeholder="Units"></div>
-                <div class="input-group"><label for="p1-non-pickable">Non-Pickable:</label><input type="number" id="p1-non-pickable" placeholder="Units"></div>
-            </div>
+            <div class="input-row"><div class="input-group"><label for="p1-pickable">Pickable:</label><input type="number" id="p1-pickable" placeholder="Units"></div><div class="input-group"><label for="p1-non-pickable">Non-Pickable:</label><input type="number" id="p1-non-pickable" placeholder="Units"></div></div>
             <div class="input-group"><label for="p1-wip">Staged WIP:</label><input type="number" id="p1-wip" placeholder="Units"></div>
-            <div class="input-group mode-group mode-group-operatives"><label for="p1-timeframe">Timeframe (Hours):</label><input type="number" id="p1-timeframe" placeholder="Hours"></div>
-            <div class="input-row">
-                <div class="input-group"><label for="p1-picker-rate">Picker Rate:</label><input type="number" id="p1-picker-rate" placeholder="U/Hr"></div>
-                <div class="input-group"><label for="p1-palletizer-rate">Palletizer Rate:</label><input type="number" id="p1-palletizer-rate" placeholder="U/Hr"></div>
-            </div>
-            <div class="input-row mode-group mode-group-time hidden">
-                 <div class="input-group"><label for="p1-available-pickers">Available Pickers:</label><input type="number" id="p1-available-pickers" placeholder="Count"></div>
-                 <div class="input-group"><label for="p1-available-palletizers">Available Palletizers:</label><input type="number" id="p1-available-palletizers" placeholder="Count"></div>
-            </div>
-            <div class="input-row">
-                <div class="input-group"><label for="p1-picker-delay">Picker Delay (min):</label><input type="number" id="p1-picker-delay" placeholder="Min"></div>
-                <div class="input-group"><label for="p1-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p1-palletizer-delay" placeholder="Min"></div>
-            </div>
-            <div class="input-row">
-                <div class="input-group"><label for="p1-picker-cost">Picker Cost/Hour:</label><input type="number" id="p1-picker-cost" placeholder="$"></div>
-                <div class="input-group"><label for="p1-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p1-palletizer-cost" placeholder="$"></div>
-            </div>
-            <div class="sync-group"><input type="checkbox" id="sync-rates-checkbox"><label for="sync-rates-checkbox">Sync Rates, Delays & Costs to P2 & P3</label></div>
+            <div class="input-group mode-group mode-group-operatives"><label for="p1-timeframe">Timeframe (Hrs):</label><input type="number" id="p1-timeframe" placeholder="Hours"></div>
+            <div class="input-row"><div class="input-group"><label for="p1-picker-rate">Picker Rate:</label><input type="number" id="p1-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p1-palletizer-rate">Palletizer Rate:</label><input type="number" id="p1-palletizer-rate" placeholder="U/Hr"></div></div>
+            <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p1-available-pickers">Available Pickers:</label><input type="number" id="p1-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p1-available-palletizers">Available Palletizers:</label><input type="number" id="p1-available-palletizers" placeholder="Count"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p1-picker-delay">Picker Delay (min):</label><input type="number" id="p1-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p1-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p1-palletizer-delay" placeholder="Min"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p1-picker-cost">Picker Cost/Hr:</label><input type="number" id="p1-picker-cost" placeholder="$"></div><div class="input-group"><label for="p1-palletizer-cost">Palletizer Cost/Hr:</label><input type="number" id="p1-palletizer-cost" placeholder="$"></div></div>
+            <div class="control-group"><input type="checkbox" id="sync-rates-checkbox"><label for="sync-rates-checkbox">Sync P1 Rates to P2 & P3</label></div>
             <div id="p1-output-log" class="output-log"></div>
         </div>
 
@@ -140,11 +129,11 @@
             <h2>(P2) Secondary Manifold</h2>
             <div class="input-row"><div class="input-group"><label for="p2-pickable">Pickable:</label><input type="number" id="p2-pickable" placeholder="Units"></div><div class="input-group"><label for="p2-non-pickable">Non-Pickable:</label><input type="number" id="p2-non-pickable" placeholder="Units"></div></div>
             <div class="input-group"><label for="p2-wip">Staged WIP:</label><input type="number" id="p2-wip" placeholder="Units"></div>
-            <div class="input-group mode-group mode-group-operatives"><label for="p2-timeframe">Timeframe (Hours):</label><input type="number" id="p2-timeframe" placeholder="Hours"></div>
+            <div class="input-group mode-group mode-group-operatives"><label for="p2-timeframe">Timeframe (Hrs):</label><input type="number" id="p2-timeframe" placeholder="Hours"></div>
             <div class="input-row"><div class="input-group"><label for="p2-picker-rate">Picker Rate:</label><input type="number" id="p2-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p2-palletizer-rate">Palletizer Rate:</label><input type="number" id="p2-palletizer-rate" placeholder="U/Hr"></div></div>
             <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p2-available-pickers">Available Pickers:</label><input type="number" id="p2-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p2-available-palletizers">Available Palletizers:</label><input type="number" id="p2-available-palletizers" placeholder="Count"></div></div>
             <div class="input-row"><div class="input-group"><label for="p2-picker-delay">Picker Delay (min):</label><input type="number" id="p2-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p2-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p2-palletizer-delay" placeholder="Min"></div></div>
-            <div class="input-row"><div class="input-group"><label for="p2-picker-cost">Picker Cost/Hour:</label><input type="number" id="p2-picker-cost" placeholder="$"></div><div class="input-group"><label for="p2-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p2-palletizer-cost" placeholder="$"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p2-picker-cost">Picker Cost/Hr:</label><input type="number" id="p2-picker-cost" placeholder="$"></div><div class="input-group"><label for="p2-palletizer-cost">Palletizer Cost/Hr:</label><input type="number" id="p2-palletizer-cost" placeholder="$"></div></div>
             <div id="p2-output-log" class="output-log"></div>
         </div>
 
@@ -152,11 +141,11 @@
             <h2>(P3) Tertiary Manifold</h2>
             <div class="input-row"><div class="input-group"><label for="p3-pickable">Pickable:</label><input type="number" id="p3-pickable" placeholder="Units"></div><div class="input-group"><label for="p3-non-pickable">Non-Pickable:</label><input type="number" id="p3-non-pickable" placeholder="Units"></div></div>
             <div class="input-group"><label for="p3-wip">Staged WIP:</label><input type="number" id="p3-wip" placeholder="Units"></div>
-            <div class="input-group mode-group mode-group-operatives"><label for="p3-timeframe">Timeframe (Hours):</label><input type="number" id="p3-timeframe" placeholder="Hours"></div>
+            <div class="input-group mode-group mode-group-operatives"><label for="p3-timeframe">Timeframe (Hrs):</label><input type="number" id="p3-timeframe" placeholder="Hours"></div>
             <div class="input-row"><div class="input-group"><label for="p3-picker-rate">Picker Rate:</label><input type="number" id="p3-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p3-palletizer-rate">Palletizer Rate:</label><input type="number" id="p3-palletizer-rate" placeholder="U/Hr"></div></div>
             <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p3-available-pickers">Available Pickers:</label><input type="number" id="p3-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p3-available-palletizers">Available Palletizers:</label><input type="number" id="p3-available-palletizers" placeholder="Count"></div></div>
             <div class="input-row"><div class="input-group"><label for="p3-picker-delay">Picker Delay (min):</label><input type="number" id="p3-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p3-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p3-palletizer-delay" placeholder="Min"></div></div>
-            <div class="input-row"><div class="input-group"><label for="p3-picker-cost">Picker Cost/Hour:</label><input type="number" id="p3-picker-cost" placeholder="$"></div><div class="input-group"><label for="p3-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p3-palletizer-cost" placeholder="$"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p3-picker-cost">Picker Cost/Hr:</label><input type="number" id="p3-picker-cost" placeholder="$"></div><div class="input-group"><label for="p3-palletizer-cost">Palletizer Cost/Hr:</label><input type="number" id="p3-palletizer-cost" placeholder="$"></div></div>
             <div id="p3-output-log" class="output-log"></div>
         </div>
         
@@ -171,8 +160,8 @@
                 <div class="control-group chart-controls">
                     <label for="chart-type-select">Chart Type:</label>
                     <select id="chart-type-select">
-                        <option value="bar">Bar Chart</option>
-                        <option value="doughnut">Doughnut Chart</option>
+                        <option value="bar">Bar</option>
+                        <option value="doughnut">Doughnut</option>
                     </select>
                 </div>
                 <canvas id="p4-chart"></canvas>
@@ -219,8 +208,7 @@
             function getValues(prefix) {
                 const values = {};
                 allInputFields.forEach(f => {
-                    const elId = `${prefix}-${f}`;
-                    values[f] = parseFloat(DOM[elId]?.value) || 0;
+                    values[f] = parseFloat(DOM[`${prefix}-${f}`]?.value) || 0;
                 });
                 return values;
             }
@@ -230,7 +218,7 @@
                 const effectivePickerTime = (v.timeframe * 60 - v.pickerDelay) / 60;
                 const effectivePalletizerTime = (v.timeframe * 60 - v.palletizerDelay) / 60;
                 const isValid = v.pickable > 0 && effectivePickerTime > 0 && effectivePalletizerTime > 0 && v.pickerRate > 0 && v.palletizerRate > 0;
-                if (!isValid) return { isValid: false, html: `<p style="color: var(--danger-color);">Awaiting valid parameters...</p>` };
+                if (!isValid) return { isValid: false, html: `<p>Awaiting valid parameters...</p>` };
                 
                 const pickerWorkload = v.pickable - v.wip;
                 const p = Math.ceil(pickerWorkload / (v.pickerRate * effectivePickerTime));
@@ -239,7 +227,7 @@
                 return {
                     isValid: true, pickers: p, palletizers: pl, cost,
                     html: `<h3>Calculus Complete:</h3><ul>
-                        <li>Pickers Required: <strong>${p}</strong><span class="detail">(${pickerWorkload.toLocaleString()} units)</span></li>
+                        <li>Pickers Required: <strong>${p}</strong></li>
                         <li>Palletizers Required: <strong>${pl}</strong></li>
                         <hr><li>Operational Cost: <strong>$${cost.toLocaleString(undefined, {minimumFractionDigits: 2})}</strong></li></ul>`
                 };
@@ -247,7 +235,7 @@
 
             function estimateTime(v) {
                 const isValid = v.pickable > 0 && v.pickerRate > 0 && v.palletizerRate > 0 && v.availablePickers > 0 && v.availablePalletizers > 0;
-                if (!isValid) return { isValid: false, html: `<p style="color: var(--danger-color);">Awaiting valid parameters...</p>` };
+                if (!isValid) return { isValid: false, html: `<p>Awaiting valid parameters...</p>` };
                 
                 const time = Math.max((v.pickable - v.wip) / (v.availablePickers * v.pickerRate), v.pickable / (v.availablePalletizers * v.palletizerRate));
                 const cost = (v.availablePickers * v.pickerCost + v.availablePalletizers * v.palletizerCost) * time;
@@ -268,9 +256,8 @@
             }
             
             function updateUIStates(mode) {
-                const isOpMode = mode === 'operatives';
-                document.querySelectorAll('.mode-group-operatives').forEach(el => el.classList.toggle('hidden', !isOpMode));
-                document.querySelectorAll('.mode-group-time').forEach(el => el.classList.toggle('hidden', isOpMode));
+                document.querySelectorAll('.mode-group-operatives').forEach(el => el.classList.toggle('hidden', mode !== 'operatives'));
+                document.querySelectorAll('.mode-group-time').forEach(el => el.classList.toggle('hidden', mode !== 'time'));
             }
 
             function syncInputs() {
@@ -279,9 +266,7 @@
                 ['p2', 'p3'].forEach(p => {
                     syncFields.forEach(field => {
                         DOM[`${p}-${field}`].disabled = isSynced;
-                        if (isSynced) {
-                            DOM[`${p}-${field}`].value = p1Values[field];
-                        }
+                        if (isSynced) DOM[`${p}-${field}`].value = p1Values[field];
                     });
                 });
             }
@@ -291,10 +276,7 @@
                 Chart.defaults.color = '#d1d1d1';
                 chart = new Chart(ctx, {
                     type: 'bar',
-                    data: {
-                        labels: ['Avg Pickers', 'Avg Palletizers'],
-                        datasets: [{ data: [0, 0], backgroundColor: ['#c3a4f0', '#a178d1'] }]
-                    },
+                    data: { labels: ['Avg Pickers', 'Avg Palletizers'], datasets: [{ data: [0, 0], backgroundColor: ['#c3a4f0', '#a178d1'] }] },
                     options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } }, plugins: { legend: { display: false } } }
                 });
             }
@@ -322,8 +304,7 @@
                 if (!name || !scenarios[name]) return;
                 prefixes.forEach(p => {
                     for (const key in scenarios[name][p]) {
-                        const elId = `${p}-${key}`;
-                        if (DOM[elId]) DOM[elId].value = scenarios[name][p][key];
+                        if (DOM[`${p}-${key}`]) DOM[`${p}-${key}`].value = scenarios[name][p][key];
                     }
                 });
                 masterUpdate();
@@ -341,50 +322,44 @@
             
             function populateScenarioDropdown() {
                 const select = DOM['load-scenario-select'];
-                select.innerHTML = '<option value="">Select a preset...</option>';
+                select.innerHTML = '<option value="">Load...</option>';
                 for (const name in scenarios) {
                     const option = document.createElement('option');
-                    option.value = name;
-                    option.textContent = name;
+                    option.value = name; option.textContent = name;
                     select.appendChild(option);
                 }
             }
-
+            
             // --- INITIALIZATION RITE ---
+            DOM['options-trigger-btn'].addEventListener('click', () => DOM['modal-overlay'].style.display = 'flex');
+            DOM['modal-close-btn'].addEventListener('click', () => DOM['modal-overlay'].style.display = 'none');
+            DOM['modal-overlay'].addEventListener('click', (e) => {
+                if (e.target.id === 'modal-overlay') DOM['modal-overlay'].style.display = 'none';
+            });
+
             document.querySelectorAll('input, select').forEach(el => {
                 const eventType = (el.tagName === 'SELECT' || el.type === 'radio' || el.type === 'checkbox') ? 'change' : 'input';
                 el.addEventListener(eventType, () => {
-                    if (el.id === 'theme-selector') {
-                        document.body.className = el.value;
-                    }
-
+                    if (el.id === 'theme-selector') document.body.className = el.value;
                     masterUpdate();
-
                     try {
-                        if (el.type === 'checkbox' || el.type === 'radio') {
-                            localStorage.setItem(el.id, el.checked);
-                        } else {
-                            localStorage.setItem(el.id, el.value);
-                        }
-                    } catch(e) { /* Memory corruption is not tolerated, but function must continue. */ }
+                        if (el.type === 'checkbox' || el.type === 'radio') localStorage.setItem(el.id, el.checked);
+                        else localStorage.setItem(el.id, el.value);
+                    } catch(e) {}
                 });
 
                 try {
                     const savedValue = localStorage.getItem(el.id);
                     if (savedValue !== null) {
-                        if (el.type === 'checkbox' || el.type === 'radio') {
-                            el.checked = (savedValue === 'true');
-                        } else {
-                            el.value = savedValue;
-                        }
+                        if (el.type === 'checkbox' || el.type === 'radio') el.checked = (savedValue === 'true');
+                        else el.value = savedValue;
                     }
-                } catch (e) { /* Failure to recall a minor engram is acceptable. */ }
+                } catch (e) {}
             });
 
-            document.querySelectorAll('button').forEach(btn => {
-                if(btn.id === 'save-scenario-btn') btn.addEventListener('click', saveScenario);
-                if(btn.id === 'load-scenario-btn') btn.addEventListener('click', loadScenario);
-                if(btn.id === 'delete-scenario-btn') btn.addEventListener('click', deleteScenario);
+            ['save-scenario-btn', 'load-scenario-btn', 'delete-scenario-btn'].forEach(id => {
+                const actions = { 'save-scenario-btn': saveScenario, 'load-scenario-btn': loadScenario, 'delete-scenario-btn': deleteScenario };
+                if(DOM[id]) DOM[id].addEventListener('click', actions[id]);
             });
             
             try {
