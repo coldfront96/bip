@@ -3,180 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni-Cogitator (Cyclical Interface Edition)</title>
+    <title>Omni-Cogitator (Compact Edition)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-color: #1a1a1a; --text-color: #d1d1d1; --primary-color: #a178d1;
             --secondary-color: #c3a4f0; --border-color: #6a4b8a; --panel-bg: #2a2a2a;
-            --input-bg: #111; --gap: 20px; --danger-color: #ff4d4d;
+            --input-bg: #111; --gap: 15px; /* Reduced from 20px */ --danger-color: #ff4d4d;
         }
         body.theme-mars { --primary-color: #D94f30; --secondary-color: #F4A261; --border-color: #A93B24; }
         body.theme-ryza { --primary-color: #F9A03F; --secondary-color: #FFC15E; --border-color: #D4802A; }
 
-        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Lucida Console', Consolas, monospace; display: flex; flex-direction: column; align-items: center; padding: var(--gap); min-height: 100vh; box-sizing: border-box; }
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Lucida Console', Consolas, monospace; display: flex; flex-direction: column; align-items: center; padding: var(--gap); min-height: 100vh; font-size: 0.9em; /* Reduced base font size */ }
         
-        #main-container { display: flex; flex-direction: column; width: 100%; max-width: 900px; height: calc(100vh - (var(--gap) * 2)); }
-
-        #global-controls, #scenario-controls { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; background-color: var(--panel-bg); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); gap: 20px; margin-bottom: var(--gap); flex-shrink: 0; }
+        #global-controls, #scenario-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; width: 100%; max-width: 1150px; /* Reduced from 1300px */ margin-bottom: var(--gap); background-color: var(--panel-bg); padding: 10px 15px; /* Reduced padding */ border-radius: 8px; border: 1px solid var(--border-color); gap: 15px; }
         .control-group { display: flex; align-items: center; gap: 8px; }
         label { font-weight: bold; white-space: nowrap; }
         #mode-selector label, .sync-group label, #global-controls .control-group label { margin: 0; }
-        input[type="text"], select, button { background-color: var(--input-bg); color: var(--text-color); border: 1px solid #444; padding: 5px; border-radius: 4px; font-family: inherit; }
+        input[type="text"], select, button { background-color: var(--input-bg); color: var(--text-color); border: 1px solid #444; padding: 4px; /* Reduced padding */ border-radius: 4px; font-family: inherit; }
         button { cursor: pointer; font-weight: bold; }
         button:hover { background-color: var(--border-color); }
 
-        #main-chassis { display: flex; flex-direction: column; flex-grow: 1; min-height: 0; }
+        #main-chassis { width: 100%; max-width: 1150px; /* Reduced from 1300px */ display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
+        .cogitator-instance { background-color: var(--panel-bg); border-radius: 8px; padding: 12px 15px; /* Reduced padding */ border: 1px solid var(--border-color); }
+        #p4-cogitator { grid-column: 1 / -1; }
 
-        #tab-container { display: flex; flex-shrink: 0; }
-        .tab-link { background-color: var(--input-bg); border-bottom: none; border-radius: 4px 4px 0 0; padding: 10px 15px; font-size: 1em; margin-right: 4px; }
-        .tab-link.active { background-color: var(--panel-bg); border-bottom: 1px solid var(--panel-bg); }
+        @media (max-width: 1150px) { /* Breakpoint matches new max-width */
+            #main-chassis {
+                grid-template-columns: 1fr;
+                max-width: 600px; /* Reduced max-width for single column */
+            }
+            #p4-cogitator {
+                grid-column: auto;
+            }
+            #global-controls, #scenario-controls {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+        }
 
-        .cogitator-instance { background-color: var(--panel-bg); border-radius: 0 8px 8px 8px; padding: 20px; border: 1px solid var(--border-color); flex-grow: 1; overflow-y: auto; }
-        
-        h1, h2 { text-align: center; margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #444; }
-        h1 { color: var(--primary-color); font-size: 1.5em; }
-        h2 { color: var(--secondary-color); font-size: 1.1em; margin-bottom: 15px; }
+        h1, h2 { text-align: center; margin-top: 0; padding-bottom: 8px; /* Reduced padding */ border-bottom: 1px solid #444; }
+        h1 { color: var(--primary-color); grid-column: 1 / -1; font-size: 1.4em; }
+        h2 { color: var(--secondary-color); font-size: 1.1em; margin-bottom: 12px; }
 
         .input-group { width: 100%;}
-        .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
         .input-row .input-group { flex: 1; margin-bottom: 0; }
-        label { display: block; margin-bottom: 4px; font-size: 0.9em; }
-        input[type="number"] { width: 100%; padding: 8px; background-color: var(--input-bg); border: 1px solid #444; border-radius: 4px; color: var(--text-color); font-size: 0.95em; box-sizing: border-box; }
+        label { display: block; margin-bottom: 3px; font-size: 0.9em; }
+        input[type="number"] { width: 100%; padding: 6px; /* Reduced padding */ background-color: var(--input-bg); border: 1px solid #444; border-radius: 4px; color: var(--text-color); font-size: 0.95em; box-sizing: border-box; transition: outline 0.2s; }
         input:disabled { background-color: #333; cursor: not-allowed; opacity: 0.7; }
+        input.invalid-input { outline: 2px solid var(--danger-color) !important; }
         .hidden { display: none !important; }
 
-        .output-log, .aggregate-display { margin-top: 15px; padding: 10px; background-color: var(--input-bg); border: 1px dashed #444; border-radius: 4px; }
+        .output-log, .aggregate-display { margin-top: 12px; padding: 8px; background-color: var(--input-bg); border: 1px dashed #444; border-radius: 4px; }
+        .output-log h3, .aggregate-display h3 { color: var(--secondary-color); margin: 0 0 6px 0; font-size: 1em; }
         strong { color: #ffffff; font-size: 1.1em; }
-        .aggregate-display p { margin: 8px 0; font-size: 1em; display: flex; justify-content: space-between; align-items: center;}
+        .aggregate-display p { margin: 6px 0; font-size: 1em; display: flex; justify-content: space-between; align-items: center;}
         ul { padding-left: 0; margin: 0; list-style: none; }
-        li { margin-bottom: 4px; font-size: 0.9em; }
-        hr { border-color: #444; margin: 8px 0; }
-        .sync-group { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        li { margin-bottom: 3px; font-size: 0.9em; }
+        .detail { font-size: 0.8em; color: #888; padding-left: 8px; }
+        hr { border-color: #444; margin: 6px 0; }
+        .sync-group { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
     </style>
 </head>
 <body>
 
-    <div id="main-container">
-        <div id="global-controls">
-            <div class="control-group">
-                <label for="theme-selector">Forge World Theme:</label>
-                <select id="theme-selector">
-                    <option value="theme-standard">Mechanicus Standard</option>
-                    <option value="theme-mars">Mars Red</option>
-                    <option value="theme-ryza">Ryza Orange</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label>Calculation Mode:</label>
-                <div id="mode-selector">
-                    <input type="radio" id="mode-operatives" name="calc-mode" value="operatives" checked>
-                    <label for="mode-operatives">Calculate Operatives</label>
-                    <input type="radio" id="mode-time" name="calc-mode" value="time">
-                    <label for="mode-time">Estimate Time</label>
-                </div>
+    <div id="global-controls">
+        <div class="control-group">
+            <label for="theme-selector">Forge World Theme:</label>
+            <select id="theme-selector">
+                <option value="theme-standard">Mechanicus Standard</option>
+                <option value="theme-mars">Mars Red</option>
+                <option value="theme-ryza">Ryza Orange</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Calculation Mode:</label>
+            <div id="mode-selector">
+                <input type="radio" id="mode-operatives" name="calc-mode" value="operatives" checked>
+                <label for="mode-operatives">Calculate Operatives</label>
+                <input type="radio" id="mode-time" name="calc-mode" value="time">
+                <label for="mode-time">Estimate Time</label>
             </div>
         </div>
-    
-        <div id="scenario-controls">
-            <div class="control-group">
-                <label for="scenario-name">Scenario Name:</label>
-                <input type="text" id="scenario-name" placeholder="e.g., High-Volume Shift">
-                <button id="save-scenario-btn">Save</button>
-            </div>
-            <div class="control-group">
-                <label for="load-scenario-select">Load Scenario:</label>
-                <select id="load-scenario-select"><option value="">Select a preset...</option></select>
-                <button id="load-scenario-btn">Load</button>
-                <button id="delete-scenario-btn">Delete</button>
-            </div>
-        </div>
-    
-        <div id="main-chassis">
-            <div id="tab-container">
-                <button id="tab-p1" class="tab-link" onclick="openManifold('p1-cogitator', this)">P1</button>
-                <button id="tab-p2" class="tab-link" onclick="openManifold('p2-cogitator', this)">P2</button>
-                <button id="tab-p3" class="tab-link" onclick="openManifold('p3-cogitator', this)">P3</button>
-                <button id="tab-p4" class="tab-link" onclick="openManifold('p4-cogitator', this)">Aggregate</button>
-            </div>
+    </div>
 
-            <div id="p1-cogitator" class="cogitator-instance">
-                <h2>(P1) Primary Manifold</h2>
-                <div class="input-row"><div class="input-group"><label for="p1-pickable">Pickable:</label><input type="number" id="p1-pickable" placeholder="Units"></div><div class="input-group"><label for="p1-non-pickable">Non-Pickable:</label><input type="number" id="p1-non-pickable" placeholder="Units"></div></div>
-                <div class="input-group"><label for="p1-wip">Staged WIP:</label><input type="number" id="p1-wip" placeholder="Units"></div>
-                <div class="input-group mode-group mode-group-operatives"><label for="p1-timeframe">Timeframe (Hours):</label><input type="number" id="p1-timeframe" placeholder="Hours"></div>
-                <div class="input-row"><div class="input-group"><label for="p1-picker-rate">Picker Rate:</label><input type="number" id="p1-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p1-palletizer-rate">Palletizer Rate:</label><input type="number" id="p1-palletizer-rate" placeholder="U/Hr"></div></div>
-                <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p1-available-pickers">Available Pickers:</label><input type="number" id="p1-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p1-available-palletizers">Available Palletizers:</label><input type="number" id="p1-available-palletizers" placeholder="Count"></div></div>
-                <div class="input-row"><div class="input-group"><label for="p1-picker-delay">Picker Delay (min):</label><input type="number" id="p1-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p1-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p1-palletizer-delay" placeholder="Min"></div></div>
-                <div class="input-row"><div class="input-group"><label for="p1-picker-cost">Picker Cost/Hour:</label><input type="number" id="p1-picker-cost" placeholder="$"></div><div class="input-group"><label for="p1-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p1-palletizer-cost" placeholder="$"></div></div>
-                <div class="sync-group"><input type="checkbox" id="sync-rates-checkbox"><label for="sync-rates-checkbox">Sync Rates, Delays & Costs to P2 & P3</label></div>
-                <div id="p1-output-log" class="output-log"></div>
+    <div id="scenario-controls">
+        <div class="control-group">
+            <label for="scenario-name">Scenario Name:</label>
+            <input type="text" id="scenario-name" placeholder="e.g., High-Volume Shift">
+            <button id="save-scenario-btn">Save</button>
+        </div>
+        <div class="control-group">
+            <label for="load-scenario-select">Load Scenario:</label>
+            <select id="load-scenario-select">
+                <option value="">Select a preset...</option>
+            </select>
+            <button id="load-scenario-btn">Load</button>
+            <button id="delete-scenario-btn">Delete</button>
+        </div>
+    </div>
+
+    <div id="main-chassis">
+        <h1>Omni-Purpose Allocation Cogitator</h1>
+
+        <div id="p1-cogitator" class="cogitator-instance">
+            <h2>(P1) Primary Manifold</h2>
+            <div class="input-row">
+                <div class="input-group"><label for="p1-pickable">Pickable:</label><input type="number" id="p1-pickable" placeholder="Units"></div>
+                <div class="input-group"><label for="p1-non-pickable">Non-Pickable:</label><input type="number" id="p1-non-pickable" placeholder="Units"></div>
             </div>
-    
-            <div id="p2-cogitator" class="cogitator-instance">
-                <h2>(P2) Secondary Manifold</h2>
-                <div class="input-row"><div class="input-group"><label for="p2-pickable">Pickable:</label><input type="number" id="p2-pickable" placeholder="Units"></div><div class="input-group"><label for="p2-non-pickable">Non-Pickable:</label><input type="number" id="p2-non-pickable" placeholder="Units"></div></div>
-                <div class="input-group"><label for="p2-wip">Staged WIP:</label><input type="number" id="p2-wip" placeholder="Units"></div>
-                <div class="input-group mode-group mode-group-operatives"><label for="p2-timeframe">Timeframe (Hours):</label><input type="number" id="p2-timeframe" placeholder="Hours"></div>
-                <div class="input-row"><div class="input-group"><label for="p2-picker-rate">Picker Rate:</label><input type="number" id="p2-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p2-palletizer-rate">Palletizer Rate:</label><input type="number" id="p2-palletizer-rate" placeholder="U/Hr"></div></div>
-                <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p2-available-pickers">Available Pickers:</label><input type="number" id="p2-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p2-available-palletizers">Available Palletizers:</label><input type="number" id="p2-available-palletizers" placeholder="Count"></div></div>
-                <div class="input-row"><div class="input-group"><label for="p2-picker-delay">Picker Delay (min):</label><input type="number" id="p2-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p2-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p2-palletizer-delay" placeholder="Min"></div></div>
-                <div class="input-row"><div class="input-group"><label for="p2-picker-cost">Picker Cost/Hour:</label><input type="number" id="p2-picker-cost" placeholder="$"></div><div class="input-group"><label for="p2-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p2-palletizer-cost" placeholder="$"></div></div>
-                <div id="p2-output-log" class="output-log"></div>
+            <div class="input-group"><label for="p1-wip">Staged WIP:</label><input type="number" id="p1-wip" placeholder="Units"></div>
+            <div class="input-group mode-group mode-group-operatives"><label for="p1-timeframe">Timeframe (Hours):</label><input type="number" id="p1-timeframe" placeholder="Hours"></div>
+            <div class="input-row">
+                <div class="input-group"><label for="p1-picker-rate">Picker Rate:</label><input type="number" id="p1-picker-rate" placeholder="U/Hr"></div>
+                <div class="input-group"><label for="p1-palletizer-rate">Palletizer Rate:</label><input type="number" id="p1-palletizer-rate" placeholder="U/Hr"></div>
             </div>
-    
-            <div id="p3-cogitator" class="cogitator-instance">
-                <h2>(P3) Tertiary Manifold</h2>
-                <div class="input-row"><div class="input-group"><label for="p3-pickable">Pickable:</label><input type="number" id="p3-pickable" placeholder="Units"></div><div class="input-group"><label for="p3-non-pickable">Non-Pickable:</label><input type="number" id="p3-non-pickable" placeholder="Units"></div></div>
-                <div class="input-group"><label for="p3-wip">Staged WIP:</label><input type="number" id="p3-wip" placeholder="Units"></div>
-                <div class="input-group mode-group mode-group-operatives"><label for="p3-timeframe">Timeframe (Hours):</label><input type="number" id="p3-timeframe" placeholder="Hours"></div>
-                <div class="input-row"><div class="input-group"><label for="p3-picker-rate">Picker Rate:</label><input type="number" id="p3-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p3-palletizer-rate">Palletizer Rate:</label><input type="number" id="p3-palletizer-rate" placeholder="U/Hr"></div></div>
-                <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p3-available-pickers">Available Pickers:</label><input type="number" id="p3-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p3-available-palletizers">Available Palletizers:</label><input type="number" id="p3-available-palletizers" placeholder="Count"></div></div>
-                <div class="input-row"><div class="input-group"><label for="p3-picker-delay">Picker Delay (min):</label><input type="number" id="p3-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p3-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p3-palletizer-delay" placeholder="Min"></div></div>
-                <div class="input-row"><div class="input-group"><label for="p3-picker-cost">Picker Cost/Hour:</label><input type="number" id="p3-picker-cost" placeholder="$"></div><div class="input-group"><label for="p3-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p3-palletizer-cost" placeholder="$"></div></div>
-                <div id="p3-output-log" class="output-log"></div>
+            <div class="input-row mode-group mode-group-time hidden">
+                 <div class="input-group"><label for="p1-available-pickers">Available Pickers:</label><input type="number" id="p1-available-pickers" placeholder="Count"></div>
+                 <div class="input-group"><label for="p1-available-palletizers">Available Palletizers:</label><input type="number" id="p1-available-palletizers" placeholder="Count"></div>
             </div>
-            
-            <div id="p4-cogitator" class="cogitator-instance">
-                <h2>(P4) Aggregate Manifold</h2>
-                <div class="aggregate-display">
-                    <h3>Summative Calculus:</h3>
-                    <p>Total Pickable: <strong id="p4-total-pickable">0</strong></p>
-                    <p>Total Non-Pickable: <strong id="p4-total-non-pickable">0</strong></p>
-                    <p>Total Operational Cost: <strong id="p4-total-cost">$0</strong></p>
-                    <hr>
-                    <div class="control-group chart-controls">
-                        <label for="chart-type-select">Chart Type:</label>
-                        <select id="chart-type-select">
-                            <option value="bar">Bar Chart</option>
-                            <option value="doughnut">Doughnut Chart</option>
-                        </select>
-                    </div>
-                    <canvas id="p4-chart"></canvas>
+            <div class="input-row">
+                <div class="input-group"><label for="p1-picker-delay">Picker Delay (min):</label><input type="number" id="p1-picker-delay" placeholder="Min"></div>
+                <div class="input-group"><label for="p1-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p1-palletizer-delay" placeholder="Min"></div>
+            </div>
+            <div class="input-row">
+                <div class="input-group"><label for="p1-picker-cost">Picker Cost/Hour:</label><input type="number" id="p1-picker-cost" placeholder="$"></div>
+                <div class="input-group"><label for="p1-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p1-palletizer-cost" placeholder="$"></div>
+            </div>
+            <div class="sync-group"><input type="checkbox" id="sync-rates-checkbox"><label for="sync-rates-checkbox">Sync Rates, Delays & Costs to P2 & P3</label></div>
+            <div id="p1-output-log" class="output-log"></div>
+        </div>
+
+        <div id="p2-cogitator" class="cogitator-instance">
+            <h2>(P2) Secondary Manifold</h2>
+            <div class="input-row"><div class="input-group"><label for="p2-pickable">Pickable:</label><input type="number" id="p2-pickable" placeholder="Units"></div><div class="input-group"><label for="p2-non-pickable">Non-Pickable:</label><input type="number" id="p2-non-pickable" placeholder="Units"></div></div>
+            <div class="input-group"><label for="p2-wip">Staged WIP:</label><input type="number" id="p2-wip" placeholder="Units"></div>
+            <div class="input-group mode-group mode-group-operatives"><label for="p2-timeframe">Timeframe (Hours):</label><input type="number" id="p2-timeframe" placeholder="Hours"></div>
+            <div class="input-row"><div class="input-group"><label for="p2-picker-rate">Picker Rate:</label><input type="number" id="p2-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p2-palletizer-rate">Palletizer Rate:</label><input type="number" id="p2-palletizer-rate" placeholder="U/Hr"></div></div>
+            <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p2-available-pickers">Available Pickers:</label><input type="number" id="p2-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p2-available-palletizers">Available Palletizers:</label><input type="number" id="p2-available-palletizers" placeholder="Count"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p2-picker-delay">Picker Delay (min):</label><input type="number" id="p2-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p2-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p2-palletizer-delay" placeholder="Min"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p2-picker-cost">Picker Cost/Hour:</label><input type="number" id="p2-picker-cost" placeholder="$"></div><div class="input-group"><label for="p2-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p2-palletizer-cost" placeholder="$"></div></div>
+            <div id="p2-output-log" class="output-log"></div>
+        </div>
+
+        <div id="p3-cogitator" class="cogitator-instance">
+            <h2>(P3) Tertiary Manifold</h2>
+            <div class="input-row"><div class="input-group"><label for="p3-pickable">Pickable:</label><input type="number" id="p3-pickable" placeholder="Units"></div><div class="input-group"><label for="p3-non-pickable">Non-Pickable:</label><input type="number" id="p3-non-pickable" placeholder="Units"></div></div>
+            <div class="input-group"><label for="p3-wip">Staged WIP:</label><input type="number" id="p3-wip" placeholder="Units"></div>
+            <div class="input-group mode-group mode-group-operatives"><label for="p3-timeframe">Timeframe (Hours):</label><input type="number" id="p3-timeframe" placeholder="Hours"></div>
+            <div class="input-row"><div class="input-group"><label for="p3-picker-rate">Picker Rate:</label><input type="number" id="p3-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p3-palletizer-rate">Palletizer Rate:</label><input type="number" id="p3-palletizer-rate" placeholder="U/Hr"></div></div>
+            <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p3-available-pickers">Available Pickers:</label><input type="number" id="p3-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p3-available-palletizers">Available Palletizers:</label><input type="number" id="p3-available-palletizers" placeholder="Count"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p3-picker-delay">Picker Delay (min):</label><input type="number" id="p3-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p3-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p3-palletizer-delay" placeholder="Min"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p3-picker-cost">Picker Cost/Hour:</label><input type="number" id="p3-picker-cost" placeholder="$"></div><div class="input-group"><label for="p3-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p3-palletizer-cost" placeholder="$"></div></div>
+            <div id="p3-output-log" class="output-log"></div>
+        </div>
+        
+        <div id="p4-cogitator" class="cogitator-instance">
+            <h2>(P4) Aggregate Manifold</h2>
+            <div class="aggregate-display">
+                <h3>Summative Calculus:</h3>
+                <p>Total Pickable: <strong id="p4-total-pickable">0</strong></p>
+                <p>Total Non-Pickable: <strong id="p4-total-non-pickable">0</strong></p>
+                <p>Total Operational Cost: <strong id="p4-total-cost">$0</strong></p>
+                <hr>
+                <div class="control-group chart-controls">
+                    <label for="chart-type-select">Chart Type:</label>
+                    <select id="chart-type-select">
+                        <option value="bar">Bar Chart</option>
+                        <option value="doughnut">Doughnut Chart</option>
+                    </select>
                 </div>
+                <canvas id="p4-chart"></canvas>
             </div>
         </div>
     </div>
 
     <script>
-        // Global variable for the chart instance
-        let chart;
-
-        function openManifold(manifoldId, tabElement) {
-            // Hide all manifold instances
-            document.querySelectorAll('.cogitator-instance').forEach(el => el.style.display = "none");
-            
-            // Deactivate all tab links
-            document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
-
-            // Show the selected manifold
-            document.getElementById(manifoldId).style.display = "flex";
-            document.getElementById(manifoldId).style.flexDirection = "column";
-            
-            // Activate the selected tab link
-            tabElement.classList.add('active');
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             const DOM = {};
             document.querySelectorAll('[id]').forEach(el => DOM[el.id] = el);
@@ -184,7 +188,7 @@
             const prefixes = ['p1', 'p2', 'p3'];
             const allInputFields = ['pickable', 'non-pickable', 'wip', 'timeframe', 'picker-rate', 'palletizer-rate', 'available-pickers', 'available-palletizers', 'picker-cost', 'palletizer-cost', 'picker-delay', 'palletizer-delay'];
             const syncFields = ['picker-rate', 'palletizer-rate', 'picker-cost', 'palletizer-cost', 'picker-delay', 'palletizer-delay'];
-            
+            let chart;
             let scenarios = {};
 
             function masterUpdate() {
@@ -275,7 +279,9 @@
                 ['p2', 'p3'].forEach(p => {
                     syncFields.forEach(field => {
                         DOM[`${p}-${field}`].disabled = isSynced;
-                        if (isSynced) DOM[`${p}-${field}`].value = p1Values[field];
+                        if (isSynced) {
+                            DOM[`${p}-${field}`].value = p1Values[field];
+                        }
                     });
                 });
             }
@@ -285,8 +291,11 @@
                 Chart.defaults.color = '#d1d1d1';
                 chart = new Chart(ctx, {
                     type: 'bar',
-                    data: { labels: ['Avg Pickers', 'Avg Palletizers'], datasets: [{ data: [0, 0], backgroundColor: ['#c3a4f0', '#a178d1'] }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } }, plugins: { legend: { display: false } } }
+                    data: {
+                        labels: ['Avg Pickers', 'Avg Palletizers'],
+                        datasets: [{ data: [0, 0], backgroundColor: ['#c3a4f0', '#a178d1'] }]
+                    },
+                    options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } }, plugins: { legend: { display: false } } }
                 });
             }
 
@@ -345,21 +354,31 @@
             document.querySelectorAll('input, select').forEach(el => {
                 const eventType = (el.tagName === 'SELECT' || el.type === 'radio' || el.type === 'checkbox') ? 'change' : 'input';
                 el.addEventListener(eventType, () => {
-                    if (el.id === 'theme-selector') document.body.className = el.value;
+                    if (el.id === 'theme-selector') {
+                        document.body.className = el.value;
+                    }
+
                     masterUpdate();
+
                     try {
-                        if (el.type === 'checkbox' || el.type === 'radio') localStorage.setItem(el.id, el.checked);
-                        else localStorage.setItem(el.id, el.value);
-                    } catch(e) {}
+                        if (el.type === 'checkbox' || el.type === 'radio') {
+                            localStorage.setItem(el.id, el.checked);
+                        } else {
+                            localStorage.setItem(el.id, el.value);
+                        }
+                    } catch(e) { /* Memory corruption is not tolerated, but function must continue. */ }
                 });
 
                 try {
                     const savedValue = localStorage.getItem(el.id);
                     if (savedValue !== null) {
-                        if (el.type === 'checkbox' || el.type === 'radio') el.checked = (savedValue === 'true');
-                        else el.value = savedValue;
+                        if (el.type === 'checkbox' || el.type === 'radio') {
+                            el.checked = (savedValue === 'true');
+                        } else {
+                            el.value = savedValue;
+                        }
                     }
-                } catch (e) {}
+                } catch (e) { /* Failure to recall a minor engram is acceptable. */ }
             });
 
             document.querySelectorAll('button').forEach(btn => {
@@ -377,9 +396,6 @@
             
             initializeChart();
             masterUpdate();
-
-            // Open the first manifold by default
-            openManifold('p1-cogitator', document.getElementById('tab-p1'));
         });
     </script>
 </body>
