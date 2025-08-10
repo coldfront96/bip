@@ -3,14 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Cogitator - Stable</title>
-    
-    <link rel="manifest" href="manifest.json">
-    
-    <link rel="stylesheet" href="style.css">
+    <title>Omni-Cogitator (Definitive Edition)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #1a1a1a; --text-color: #d1d1d1; --primary-color: #a178d1;
+            --secondary-color: #c3a4f0; --border-color: #6a4b8a; --panel-bg: #2a2a2a;
+            --input-bg: #111; --gap: 20px; --danger-color: #ff4d4d;
+        }
+        body.theme-mars { --primary-color: #D94f30; --secondary-color: #F4A261; --border-color: #A93B24; }
+        body.theme-ryza { --primary-color: #F9A03F; --secondary-color: #FFC15E; --border-color: #D4802A; }
+
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Lucida Console', Consolas, monospace; display: flex; flex-direction: column; align-items: center; padding: var(--gap); min-height: 100vh; }
+        #global-controls, #scenario-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; width: 100%; max-width: 1300px; margin-bottom: var(--gap); background-color: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); gap: 20px;}
+        .control-group { display: flex; align-items: center; gap: 8px; }
+        label { font-weight: bold; white-space: nowrap; }
+        #mode-selector label, .sync-group label, #global-controls .control-group label { margin: 0; }
+        input[type="text"], select, button { background-color: var(--input-bg); color: var(--text-color); border: 1px solid #444; padding: 5px; border-radius: 4px; font-family: inherit; }
+        button { cursor: pointer; font-weight: bold; }
+        button:hover { background-color: var(--border-color); }
+
+        #main-chassis { width: 100%; max-width: 1300px; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
+        .cogitator-instance { background-color: var(--panel-bg); border-radius: 8px; padding: 15px 20px; border: 1px solid var(--border-color); }
+        #p4-cogitator { grid-column: 1 / -1; }
+
+        @media (max-width: 1100px) {
+            #main-chassis { grid-template-columns: 1fr; max-width: 700px; }
+            #p4-cogitator { grid-column: auto; }
+            #global-controls, #scenario-controls { flex-direction: column; gap: 15px; align-items: stretch; }
+        }
+
+        h1, h2 { text-align: center; margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #444; }
+        h1 { color: var(--primary-color); grid-column: 1 / -1; font-size: 1.5em; }
+        h2 { color: var(--secondary-color); font-size: 1.1em; margin-bottom: 15px; }
+
+        .input-group { width: 100%;}
+        .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .input-row .input-group { flex: 1; margin-bottom: 0; }
+        label { display: block; margin-bottom: 4px; font-size: 0.9em; }
+        input[type="number"] { width: 100%; padding: 8px; background-color: var(--input-bg); border: 1px solid #444; border-radius: 4px; color: var(--text-color); font-size: 0.95em; box-sizing: border-box; transition: outline 0.2s; }
+        input:disabled { background-color: #333; cursor: not-allowed; opacity: 0.7; }
+        input.invalid-input { outline: 2px solid var(--danger-color) !important; }
+        .hidden { display: none !important; }
+
+        .output-log, .aggregate-display { margin-top: 15px; padding: 10px; background-color: var(--input-bg); border: 1px dashed #444; border-radius: 4px; }
+        .output-log h3, .aggregate-display h3 { color: var(--secondary-color); margin: 0 0 8px 0; font-size: 1em; }
+        strong { color: #ffffff; font-size: 1.1em; }
+        .aggregate-display p { margin: 8px 0; font-size: 1em; display: flex; justify-content: space-between; align-items: center;}
+        ul { padding-left: 0; margin: 0; list-style: none; }
+        li { margin-bottom: 4px; font-size: 0.9em; }
+        .detail { font-size: 0.8em; color: #888; padding-left: 10px; }
+        hr { border-color: #444; margin: 8px 0; }
+        .sync-group { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    </style>
 </head>
-<body class="theme-standard">
+<body>
 
     <div id="global-controls">
         <div class="control-group">
@@ -32,61 +79,74 @@
         </div>
     </div>
 
+    <div id="scenario-controls">
+        <div class="control-group">
+            <label for="scenario-name">Scenario Name:</label>
+            <input type="text" id="scenario-name" placeholder="e.g., High-Volume Shift">
+            <button id="save-scenario-btn">Save</button>
+        </div>
+        <div class="control-group">
+            <label for="load-scenario-select">Load Scenario:</label>
+            <select id="load-scenario-select">
+                <option value="">Select a preset...</option>
+            </select>
+            <button id="load-scenario-btn">Load</button>
+            <button id="delete-scenario-btn">Delete</button>
+        </div>
+    </div>
+
     <div id="main-chassis">
-        <h1>Quad-Core Allocation Cogitator</h1>
+        <h1>Omni-Purpose Allocation Cogitator</h1>
 
         <div id="p1-cogitator" class="cogitator-instance">
             <h2>(P1) Primary Manifold</h2>
             <div class="input-row">
-                <div class="input-group"><label for="p1-total-units">Pickable:</label><input type="number" id="p1-total-units" class="auto-calc-input" data-prefix="p1" placeholder="Units"></div>
-                <div class="input-group"><label for="p1-non-pickable">Non-Pickable:</label><input type="number" id="p1-non-pickable" class="auto-calc-input" data-prefix="p1" placeholder="Units"></div>
+                <div class="input-group"><label for="p1-pickable">Pickable:</label><input type="number" id="p1-pickable" placeholder="Units"></div>
+                <div class="input-group"><label for="p1-non-pickable">Non-Pickable:</label><input type="number" id="p1-non-pickable" placeholder="Units"></div>
             </div>
-            <div class="input-group"><label id="p1-time-frame-label" for="p1-time-frame">Timeframe (Hours):</label><input type="number" id="p1-time-frame" class="auto-calc-input" data-prefix="p1" placeholder="Hours"></div>
+            <div class="input-group"><label for="p1-wip">Staged WIP:</label><input type="number" id="p1-wip" placeholder="Units"></div>
+            <div class="input-group mode-group mode-group-operatives"><label for="p1-timeframe">Timeframe (Hours):</label><input type="number" id="p1-timeframe" placeholder="Hours"></div>
             <div class="input-row">
-                <div class="input-group"><label id="p1-picker-rate-label" for="p1-picker-rate">Picker Rate:</label><input type="number" id="p1-picker-rate" class="auto-calc-input" data-prefix="p1" placeholder="Units/Hour"></div>
-                <div class="input-group"><label id="p1-palletizer-rate-label" for="p1-palletizer-rate">Palletizer Rate:</label><input type="number" id="p1-palletizer-rate" class="auto-calc-input" data-prefix="p1" placeholder="Units/Hour"></div>
+                <div class="input-group"><label for="p1-picker-rate">Picker Rate:</label><input type="number" id="p1-picker-rate" placeholder="U/Hr"></div>
+                <div class="input-group"><label for="p1-palletizer-rate">Palletizer Rate:</label><input type="number" id="p1-palletizer-rate" placeholder="U/Hr"></div>
+            </div>
+            <div class="input-row mode-group mode-group-time hidden">
+                 <div class="input-group"><label for="p1-available-pickers">Available Pickers:</label><input type="number" id="p1-available-pickers" placeholder="Count"></div>
+                 <div class="input-group"><label for="p1-available-palletizers">Available Palletizers:</label><input type="number" id="p1-available-palletizers" placeholder="Count"></div>
             </div>
             <div class="input-row">
-                <div class="input-group"><label id="p1-picker-cost-label" for="p1-picker-cost">Picker Cost/Hour:</label><input type="number" id="p1-picker-cost" class="auto-calc-input" data-prefix="p1" placeholder="$"></div>
-                <div class="input-group"><label id="p1-palletizer-cost-label" for="p1-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p1-palletizer-cost" class="auto-calc-input" data-prefix="p1" placeholder="$"></div>
+                <div class="input-group"><label for="p1-picker-delay">Picker Delay (min):</label><input type="number" id="p1-picker-delay" placeholder="Min"></div>
+                <div class="input-group"><label for="p1-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p1-palletizer-delay" placeholder="Min"></div>
             </div>
-            <div class="sync-group"><input type="checkbox" id="sync-rates-checkbox"><label for="sync-rates-checkbox">Sync Rates & Costs to P2 & P3</label></div>
+            <div class="input-row">
+                <div class="input-group"><label for="p1-picker-cost">Picker Cost/Hour:</label><input type="number" id="p1-picker-cost" placeholder="$"></div>
+                <div class="input-group"><label for="p1-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p1-palletizer-cost" placeholder="$"></div>
+            </div>
+            <div class="sync-group"><input type="checkbox" id="sync-rates-checkbox"><label for="sync-rates-checkbox">Sync Rates, Delays & Costs to P2 & P3</label></div>
             <div id="p1-output-log" class="output-log"></div>
         </div>
 
         <div id="p2-cogitator" class="cogitator-instance">
             <h2>(P2) Secondary Manifold</h2>
-            <div class="input-row">
-                <div class="input-group"><label for="p2-total-units">Pickable:</label><input type="number" id="p2-total-units" class="auto-calc-input" data-prefix="p2" placeholder="Units"></div>
-                <div class="input-group"><label for="p2-non-pickable">Non-Pickable:</label><input type="number" id="p2-non-pickable" class="auto-calc-input" data-prefix="p2" placeholder="Units"></div>
-            </div>
-            <div class="input-group"><label id="p2-time-frame-label" for="p2-time-frame">Timeframe (Hours):</label><input type="number" id="p2-time-frame" class="auto-calc-input" data-prefix="p2" placeholder="Hours"></div>
-            <div class="input-row">
-                <div class="input-group"><label id="p2-picker-rate-label" for="p2-picker-rate">Picker Rate:</label><input type="number" id="p2-picker-rate" class="auto-calc-input" data-prefix="p2" placeholder="Units/Hour"></div>
-                <div class="input-group"><label id="p2-palletizer-rate-label" for="p2-palletizer-rate">Palletizer Rate:</label><input type="number" id="p2-palletizer-rate" class="auto-calc-input" data-prefix="p2" placeholder="Units/Hour"></div>
-            </div>
-            <div class="input-row">
-                <div class="input-group"><label id="p2-picker-cost-label" for="p2-picker-cost">Picker Cost/Hour:</label><input type="number" id="p2-picker-cost" class="auto-calc-input" data-prefix="p2" placeholder="$"></div>
-                <div class="input-group"><label id="p2-palletizer-cost-label" for="p2-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p2-palletizer-cost" class="auto-calc-input" data-prefix="p2" placeholder="$"></div>
-            </div>
+            <div class="input-row"><div class="input-group"><label for="p2-pickable">Pickable:</label><input type="number" id="p2-pickable" placeholder="Units"></div><div class="input-group"><label for="p2-non-pickable">Non-Pickable:</label><input type="number" id="p2-non-pickable" placeholder="Units"></div></div>
+            <div class="input-group"><label for="p2-wip">Staged WIP:</label><input type="number" id="p2-wip" placeholder="Units"></div>
+            <div class="input-group mode-group mode-group-operatives"><label for="p2-timeframe">Timeframe (Hours):</label><input type="number" id="p2-timeframe" placeholder="Hours"></div>
+            <div class="input-row"><div class="input-group"><label for="p2-picker-rate">Picker Rate:</label><input type="number" id="p2-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p2-palletizer-rate">Palletizer Rate:</label><input type="number" id="p2-palletizer-rate" placeholder="U/Hr"></div></div>
+            <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p2-available-pickers">Available Pickers:</label><input type="number" id="p2-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p2-available-palletizers">Available Palletizers:</label><input type="number" id="p2-available-palletizers" placeholder="Count"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p2-picker-delay">Picker Delay (min):</label><input type="number" id="p2-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p2-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p2-palletizer-delay" placeholder="Min"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p2-picker-cost">Picker Cost/Hour:</label><input type="number" id="p2-picker-cost" placeholder="$"></div><div class="input-group"><label for="p2-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p2-palletizer-cost" placeholder="$"></div></div>
             <div id="p2-output-log" class="output-log"></div>
         </div>
 
         <div id="p3-cogitator" class="cogitator-instance">
             <h2>(P3) Tertiary Manifold</h2>
-            <div class="input-row">
-                <div class="input-group"><label for="p3-total-units">Pickable:</label><input type="number" id="p3-total-units" class="auto-calc-input" data-prefix="p3" placeholder="Units"></div>
-                <div class="input-group"><label for="p3-non-pickable">Non-Pickable:</label><input type="number" id="p3-non-pickable" class="auto-calc-input" data-prefix="p3" placeholder="Units"></div>
-            </div>
-            <div class="input-group"><label id="p3-time-frame-label" for="p3-time-frame">Timeframe (Hours):</label><input type="number" id="p3-time-frame" class="auto-calc-input" data-prefix="p3" placeholder="Hours"></div>
-            <div class="input-row">
-                <div class="input-group"><label id="p3-picker-rate-label" for="p3-picker-rate">Picker Rate:</label><input type="number" id="p3-picker-rate" class="auto-calc-input" data-prefix="p3" placeholder="Units/Hour"></div>
-                <div class="input-group"><label id="p3-palletizer-rate-label" for="p3-palletizer-rate">Palletizer Rate:</label><input type="number" id="p3-palletizer-rate" class="auto-calc-input" data-prefix="p3" placeholder="Units/Hour"></div>
-            </div>
-            <div class="input-row">
-                <div class="input-group"><label id="p3-picker-cost-label" for="p3-picker-cost">Picker Cost/Hour:</label><input type="number" id="p3-picker-cost" class="auto-calc-input" data-prefix="p3" placeholder="$"></div>
-                <div class="input-group"><label id="p3-palletizer-cost-label" for="p3-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p3-palletizer-cost" class="auto-calc-input" data-prefix="p3" placeholder="$"></div>
-            </div>
+            <div class="input-row"><div class="input-group"><label for="p3-pickable">Pickable:</label><input type="number" id="p3-pickable" placeholder="Units"></div><div class="input-group"><label for="p3-non-pickable">Non-Pickable:</label><input type="number" id="p3-non-pickable" placeholder="Units"></div></div>
+            <div class="input-group"><label for="p3-wip">Staged WIP:</label><input type="number" id="p3-wip" placeholder="Units"></div>
+            <div class="input-group mode-group mode-group-operatives"><label for="p3-timeframe">Timeframe (Hours):</label><input type="number" id="p3-timeframe" placeholder="Hours"></div>
+            <div class="input-row"><div class="input-group"><label for="p3-picker-rate">Picker Rate:</label><input type="number" id="p3-picker-rate" placeholder="U/Hr"></div><div class="input-group"><label for="p3-palletizer-rate">Palletizer Rate:</label><input type="number" id="p3-palletizer-rate" placeholder="U/Hr"></div></div>
+            <div class="input-row mode-group mode-group-time hidden"><div class="input-group"><label for="p3-available-pickers">Available Pickers:</label><input type="number" id="p3-available-pickers" placeholder="Count"></div><div class="input-group"><label for="p3-available-palletizers">Available Palletizers:</label><input type="number" id="p3-available-palletizers" placeholder="Count"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p3-picker-delay">Picker Delay (min):</label><input type="number" id="p3-picker-delay" placeholder="Min"></div><div class="input-group"><label for="p3-palletizer-delay">Palletizer Delay (min):</label><input type="number" id="p3-palletizer-delay" placeholder="Min"></div></div>
+            <div class="input-row"><div class="input-group"><label for="p3-picker-cost">Picker Cost/Hour:</label><input type="number" id="p3-picker-cost" placeholder="$"></div><div class="input-group"><label for="p3-palletizer-cost">Palletizer Cost/Hour:</label><input type="number" id="p3-palletizer-cost" placeholder="$"></div></div>
             <div id="p3-output-log" class="output-log"></div>
         </div>
         
@@ -98,21 +158,225 @@
                 <p>Total Non-Pickable: <strong id="p4-total-non-pickable">0</strong></p>
                 <p>Total Operational Cost: <strong id="p4-total-cost">$0</strong></p>
                 <hr>
+                <div class="control-group chart-controls">
+                    <label for="chart-type-select">Chart Type:</label>
+                    <select id="chart-type-select">
+                        <option value="bar">Bar Chart</option>
+                        <option value="doughnut">Doughnut Chart</option>
+                    </select>
+                </div>
                 <canvas id="p4-chart"></canvas>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
-
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('Service worker registered.', reg))
-            .catch(err => console.log('Service worker registration failed: ', err));
+        document.addEventListener('DOMContentLoaded', () => {
+            const DOM = {};
+            document.querySelectorAll('[id]').forEach(el => DOM[el.id] = el);
+
+            const prefixes = ['p1', 'p2', 'p3'];
+            const allInputFields = ['pickable', 'non-pickable', 'wip', 'timeframe', 'picker-rate', 'palletizer-rate', 'available-pickers', 'available-palletizers', 'picker-cost', 'palletizer-cost', 'picker-delay', 'palletizer-delay'];
+            const syncFields = ['picker-rate', 'palletizer-rate', 'picker-cost', 'palletizer-cost', 'picker-delay', 'palletizer-delay'];
+            let chart;
+            let scenarios = {};
+
+            function masterUpdate() {
+                const mode = DOM['mode-operatives'].checked ? 'operatives' : 'time';
+                if (DOM['sync-rates-checkbox'].checked) syncInputs();
+                updateUIStates(mode);
+
+                const totals = { pickable: 0, nonPickable: 0, cost: 0, pickers: 0, palletizers: 0, activeManifolds: 0 };
+
+                prefixes.forEach(prefix => {
+                    const values = getValues(prefix);
+                    const results = (mode === 'operatives') ? calculateOperatives(values) : estimateTime(values);
+                    DOM[`${prefix}-output-log`].innerHTML = results.html;
+
+                    if (results.isValid) {
+                        totals.activeManifolds++;
+                        totals.pickers += results.pickers || 0;
+                        totals.palletizers += results.palletizers || 0;
+                        totals.cost += results.cost || 0;
+                    }
+                    totals.pickable += values.pickable;
+                    totals.nonPickable += values.nonPickable;
+                });
+                
+                renderAggregate(totals);
+            }
+
+            function getValues(prefix) {
+                const values = {};
+                allInputFields.forEach(f => {
+                    // This uses the correct HTML ID 'p1-total-units' for the 'pickable' value
+                    const elId = (f === 'pickable') ? `${prefix}-total-units` : `${prefix}-${f}`;
+                    values[f] = parseFloat(DOM[elId]?.value) || 0;
+                });
+                return values;
+            }
+
+            function calculateOperatives(v) {
+                v.wip = Math.min(v.pickable, v.wip);
+                const effectivePickerTime = (v.timeframe * 60 - v.pickerDelay) / 60;
+                const effectivePalletizerTime = (v.timeframe * 60 - v.palletizerDelay) / 60;
+                const isValid = v.pickable > 0 && effectivePickerTime > 0 && effectivePalletizerTime > 0 && v.pickerRate > 0 && v.palletizerRate > 0;
+                if (!isValid) return { isValid: false, html: `<p style="color: var(--danger-color);">Awaiting valid parameters...</p>` };
+                
+                const pickerWorkload = v.pickable - v.wip;
+                const p = Math.ceil(pickerWorkload / (v.pickerRate * effectivePickerTime));
+                const pl = Math.ceil(v.pickable / (v.palletizerRate * effectivePalletizerTime));
+                const cost = (p * v.pickerCost * effectivePickerTime) + (pl * v.palletizerCost * effectivePalletizerTime);
+                return {
+                    isValid: true, pickers: p, palletizers: pl, cost,
+                    html: `<h3>Calculus Complete:</h3><ul>
+                        <li>Pickers Required: <strong>${p}</strong><span class="detail">(${pickerWorkload.toLocaleString()} units)</span></li>
+                        <li>Palletizers Required: <strong>${pl}</strong></li>
+                        <hr><li>Operational Cost: <strong>$${cost.toLocaleString(undefined, {minimumFractionDigits: 2})}</strong></li></ul>`
+                };
+            }
+
+            function estimateTime(v) {
+                const isValid = v.pickable > 0 && v.pickerRate > 0 && v.palletizerRate > 0 && v.availablePickers > 0 && v.availablePalletizers > 0;
+                if (!isValid) return { isValid: false, html: `<p style="color: var(--danger-color);">Awaiting valid parameters...</p>` };
+                
+                const time = Math.max((v.pickable - v.wip) / (v.availablePickers * v.pickerRate), v.pickable / (v.availablePalletizers * v.palletizerRate));
+                const cost = (v.availablePickers * v.pickerCost + v.availablePalletizers * v.palletizerCost) * time;
+                return {
+                    isValid: true, time, cost,
+                    html: `<h3>Calculus Complete:</h3><ul>
+                        <li>Time Required: <strong>${time.toFixed(2)} Hrs</strong></li>
+                        <hr><li>Operational Cost: <strong>$${cost.toLocaleString(undefined, {minimumFractionDigits: 2})}</strong></li></ul>`
+                };
+            }
+
+            function renderAggregate(totals) {
+                const div = totals.activeManifolds || 1;
+                DOM['p4-total-pickable'].textContent = totals.pickable.toLocaleString();
+                DOM['p4-total-non-pickable'].textContent = totals.nonPickable.toLocaleString();
+                DOM['p4-total-cost'].textContent = `$${totals.cost.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                updateChart([totals.pickers / div, totals.palletizers / div]);
+            }
+            
+            function updateUIStates(mode) {
+                const isOpMode = mode === 'operatives';
+                document.querySelectorAll('.mode-group-operatives').forEach(el => el.classList.toggle('hidden', !isOpMode));
+                document.querySelectorAll('.mode-group-time').forEach(el => el.classList.toggle('hidden', isOpMode));
+            }
+
+            function syncInputs() {
+                const isSynced = DOM['sync-rates-checkbox'].checked;
+                const p1Values = getValues('p1');
+                ['p2', 'p3'].forEach(p => {
+                    syncFields.forEach(field => {
+                        DOM[`${p}-${field}`].disabled = isSynced;
+                        if (isSynced) {
+                            DOM[`${p}-${field}`].value = p1Values[field];
+                        }
+                    });
+                });
+            }
+
+            function initializeChart() {
+                const ctx = DOM['p4-chart'].getContext('2d');
+                Chart.defaults.color = '#d1d1d1';
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Avg Pickers', 'Avg Palletizers'],
+                        datasets: [{ data: [0, 0], backgroundColor: ['#c3a4f0', '#a178d1'] }]
+                    },
+                    options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } }, plugins: { legend: { display: false } } }
+                });
+            }
+
+            function updateChart(data) {
+                if (!chart) return;
+                chart.config.type = DOM['chart-type-select'].value;
+                chart.data.datasets[0].data = data;
+                chart.update();
+            }
+
+            function saveScenario() {
+                const name = DOM['scenario-name'].value.trim();
+                if (!name) { alert("Please enter a scenario name."); return; }
+                const scenarioData = {};
+                prefixes.forEach(p => scenarioData[p] = getValues(p));
+                scenarios[name] = scenarioData;
+                localStorage.setItem('cogitatorScenarios', JSON.stringify(scenarios));
+                populateScenarioDropdown();
+                DOM['load-scenario-select'].value = name;
+            }
+
+            function loadScenario() {
+                const name = DOM['load-scenario-select'].value;
+                if (!name || !scenarios[name]) return;
+                prefixes.forEach(p => {
+                    for (const key in scenarios[name][p]) {
+                        const elId = (key === 'pickable') ? `${p}-total-units` : `${p}-${key}`;
+                        if (DOM[elId]) DOM[elId].value = scenarios[name][p][key];
+                    }
+                });
+                masterUpdate();
+            }
+
+            function deleteScenario() {
+                const name = DOM['load-scenario-select'].value;
+                if (!name) return;
+                if (confirm(`Are you sure you want to delete the "${name}" scenario?`)) {
+                    delete scenarios[name];
+                    localStorage.setItem('cogitatorScenarios', JSON.stringify(scenarios));
+                    populateScenarioDropdown();
+                }
+            }
+            
+            function populateScenarioDropdown() {
+                const select = DOM['load-scenario-select'];
+                select.innerHTML = '<option value="">Select a preset...</option>';
+                for (const name in scenarios) {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    select.appendChild(option);
+                }
+            }
+
+            // --- INITIALIZATION RITE ---
+            document.querySelectorAll('input, select').forEach(el => {
+                const eventType = (el.tagName === 'SELECT' || el.type === 'radio' || el.type === 'checkbox') ? 'change' : 'input';
+                el.addEventListener(eventType, () => {
+                    masterUpdate();
+                    try {
+                        if (el.type === 'checkbox' || el.type === 'radio') localStorage.setItem(el.id, el.checked);
+                        else localStorage.setItem(el.id, el.value);
+                    } catch(e) {}
+                });
+
+                try {
+                    const savedValue = localStorage.getItem(el.id);
+                    if (savedValue !== null) {
+                        if (el.type === 'checkbox' || el.type === 'radio') el.checked = (savedValue === 'true');
+                        else el.value = savedValue;
+                    }
+                } catch (e) {}
+            });
+
+            document.querySelectorAll('button').forEach(btn => {
+                if(btn.id === 'save-scenario-btn') btn.addEventListener('click', saveScenario);
+                if(btn.id === 'load-scenario-btn') btn.addEventListener('click', loadScenario);
+                if(btn.id === 'delete-scenario-btn') btn.addEventListener('click', deleteScenario);
+            });
+            
+            try {
+                const savedScenarios = localStorage.getItem('cogitatorScenarios');
+                if (savedScenarios) scenarios = JSON.parse(savedScenarios);
+                populateScenarioDropdown();
+                document.body.className = localStorage.getItem('theme-selector') || 'theme-standard';
+            } catch (e) { console.warn("Could not read from memory engrams."); }
+            
+            initializeChart();
+            masterUpdate();
         });
-      }
     </script>
 </body>
 </html>
