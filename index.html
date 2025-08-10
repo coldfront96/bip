@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omni-Cogitator (Total Workload Fix)</title>
+    <title>Omni-Cogitator (Height-Constrained)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -89,6 +89,12 @@
         li { margin-bottom: 3px; font-size: 0.9em; }
         .detail { font-size: 0.8em; color: #888; padding-left: 10px; }
         hr { border-color: #444; margin: 6px 0; }
+
+        /* CORRECTED: New container to constrain the chart's height */
+        .chart-container {
+            position: relative;
+            max-height: 250px; 
+        }
     </style>
 </head>
 <body>
@@ -175,7 +181,10 @@
                         <option value="doughnut">Doughnut</option>
                     </select>
                 </div>
-                <canvas id="p4-chart"></canvas>
+                <!-- CORRECTED: Canvas is now wrapped in a container -->
+                <div class="chart-container">
+                    <canvas id="p4-chart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -193,10 +202,9 @@
 
             function masterUpdate() {
                 const mode = DOM['mode-operatives'].checked ? 'operatives' : 'time';
-                if (DOM['sync-rates-checkbox'].checked) syncInputs();
+                syncInputs();
                 updateUIStates(mode);
 
-                // CORRECTED: Added totalPickers and totalPalletizers to totals object
                 const totals = { pickable: 0, nonPickable: 0, pickers: 0, palletizers: 0, totalPickers: 0, totalPalletizers: 0, activeManifolds: 0 };
 
                 prefixes.forEach(prefix => {
@@ -208,7 +216,6 @@
                         totals.activeManifolds++;
                         totals.pickers += results.pickers || 0;
                         totals.palletizers += results.palletizers || 0;
-                        // CORRECTED: Add total operatives to totals
                         totals.totalPickers += results.totalPickers || 0;
                         totals.totalPalletizers += results.totalPalletizers || 0;
                     }
@@ -238,7 +245,6 @@
                 const p = Math.ceil(pickerWorkload / (v['picker-rate'] * effectivePickerTime));
                 const pl = Math.ceil(palletizerWorkload / (v['palletizer-rate'] * effectivePalletizerTime));
 
-                // CORRECTED: Calculate total workload including non-pickable units
                 const totalWorkload = v.pickable + v['non-pickable'];
                 const totalPalletizerWorkload = totalWorkload + v.wip;
                 const tp = Math.ceil(totalWorkload / (v['picker-rate'] * effectivePickerTime));
@@ -246,7 +252,6 @@
                 
                 return {
                     isValid: true, pickers: p, palletizers: pl, totalPickers: tp, totalPalletizers: tpl,
-                    // CORRECTED: Updated HTML to show both calculations
                     html: `<h3>Calculus Complete:</h3><ul>
                         <li>Pickers (Pickable): <strong>${p}</strong></li>
                         <li>Palletizers (Pickable): <strong>${pl}</strong></li>
@@ -264,7 +269,6 @@
                 const palletizerTime = (v.pickable + v.wip) / (v['available-palletizers'] * v['palletizer-rate']);
                 const time = Math.max(pickerTime, palletizerTime);
 
-                // CORRECTED: Calculate total time including non-pickable units
                 const totalWorkload = v.pickable + v['non-pickable'];
                 const totalPalletizerWorkload = totalWorkload + v.wip;
                 const totalPickerTime = totalWorkload / (v['available-pickers'] * v['picker-rate']);
@@ -273,7 +277,6 @@
 
                 return {
                     isValid: true, time, totalTime,
-                    // CORRECTED: Updated HTML to show both time calculations
                     html: `<h3>Calculus Complete:</h3><ul>
                         <li>Time (Pickable): <strong>${time.toFixed(2)} Hrs</strong></li>
                         <li>Time (Total): <strong>${totalTime.toFixed(2)} Hrs</strong></li></ul>`
@@ -284,7 +287,6 @@
                 const div = totals.activeManifolds || 1;
                 DOM['p4-total-pickable'].textContent = totals.pickable.toLocaleString();
                 DOM['p4-total-non-pickable'].textContent = totals.nonPickable.toLocaleString();
-                // CORRECTED: Pass all four operative averages to the chart
                 updateChart([totals.pickers / div, totals.palletizers / div, totals.totalPickers / div, totals.totalPalletizers / div]);
             }
             
@@ -299,7 +301,9 @@
                 ['p2', 'p3'].forEach(p => {
                     syncFields.forEach(field => {
                         DOM[`${p}-${field}`].disabled = isSynced;
-                        if (isSynced) DOM[`${p}-${field}`].value = p1Values[field];
+                        if (isSynced) {
+                            DOM[`${p}-${field}`].value = p1Values[field];
+                        }
                     });
                 });
             }
@@ -309,7 +313,6 @@
                 Chart.defaults.color = '#d1d1d1';
                 chart = new Chart(ctx, {
                     type: 'bar',
-                    // CORRECTED: Updated chart labels and colors for four data points
                     data: { 
                         labels: ['Avg Pickers (Pickable)', 'Avg Palletizers (Pickable)', 'Avg Pickers (Total)', 'Avg Palletizers (Total)'], 
                         datasets: [{ 
@@ -317,7 +320,8 @@
                             backgroundColor: ['#a178d1', '#6a4b8a', '#F4A261', '#D94f30'] 
                         }] 
                     },
-                    options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } }, plugins: { legend: { display: false } } }
+                    // CORRECTED: Added maintainAspectRatio: false to respect the container's height
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#444' } }, x: { grid: { color: '#444' } } }, plugins: { legend: { display: false } } }
                 });
             }
 
